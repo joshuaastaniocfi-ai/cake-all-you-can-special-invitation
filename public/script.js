@@ -10,7 +10,31 @@
   const arrowBtn = $('#scrollDown');
   const rsvpFixedBtn = $('#toRsvp');
   const DESIGN_W = 402, ENV_H = 874;
+
+  /* ---------- Core State Variables (hoisted to top to prevent TDZ errors) ---------- */
   let opened = false;
+  let isInviteUsed = false;
+  let isLinkValid = true;
+  let invalidLinkReason = 'This invitation link is not valid. Access to this celebration requires an official personal invitation link.';
+  let inviteCode = '';
+
+  // Track unique invitation code from URL or session/local storage
+  function getActiveInviteCode() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const fromUrl = urlParams.get('code') || urlParams.get('invite');
+    const fromSession = sessionStorage.getItem('cayc_invite_code');
+    const fromLocal = localStorage.getItem('cayc_invite_code');
+    const code = (fromUrl || fromSession || fromLocal || inviteCode || '').trim().toUpperCase();
+    if (code) {
+      inviteCode = code;
+      sessionStorage.setItem('cayc_invite_code', code);
+      localStorage.setItem('cayc_invite_code', code);
+      const hiddenInput = $('#formInviteCode');
+      if (hiddenInput) hiddenInput.value = code;
+    }
+    return code;
+  }
+  inviteCode = getActiveInviteCode();
 
   /* ---------- scale the 402px design to the viewport ---------- */
   function fit() {
@@ -41,9 +65,23 @@
     flap: 'cubic-bezier(.45,.05,.2,1)'
   };
   const anim = (el, keyframes, opts = {}) => {
-    if (!el || !el.animate) return Promise.resolve();
-    const a = el.animate(keyframes, { duration: 600, easing: EASE.out, fill: 'forwards', ...opts });
-    return a.finished.catch(() => {});
+    if (!el) return Promise.resolve();
+    if (!el.animate) return Promise.resolve();
+    return new Promise(resolve => {
+      try {
+        const a = el.animate(keyframes, { duration: 600, easing: EASE.out, fill: 'forwards', ...opts });
+        if (a && a.finished) {
+          a.finished.then(resolve).catch(resolve);
+        } else if (a) {
+          a.onfinish = resolve;
+          a.onerror = resolve;
+        } else {
+          resolve();
+        }
+      } catch (err) {
+        resolve();
+      }
+    });
   };
 
   /* ---------- floating UI indicators (fixed RSVP button + scroll arrow) ---------- */
@@ -98,10 +136,6 @@
   window.addEventListener('resize', onScroll, { passive: true });
 
   /* ---------- screens ---------- */
-  let isInviteUsed = false;
-  let isLinkValid = true;
-  let invalidLinkReason = 'This invitation link is not valid. Access to this celebration requires an official personal invitation link.';
-
   function populatePass(name, no) {
     if (name) $('#passName').textContent = name;
     if (no) {
@@ -157,7 +191,11 @@
   /* ---------- envelope opening (smooth Figma Smart Animate split) ---------- */
   function finishOpen() {
     opened = true;
-    envelope.hidden = true;
+    if (envelope) {
+      envelope.hidden = true;
+      envelope.style.display = 'none';
+      envelope.style.pointerEvents = 'none';
+    }
     html.classList.remove('locked');
     document.body.dataset.bg = 'cream';
     updateFloatingUi();
@@ -184,22 +222,28 @@
     if (envBackdrop) envBackdrop.style.display = 'none';
     document.body.dataset.bg = 'cream';
 
-    const DURATION = 3000; // Slower, cinematic opening animation (3.0s)
-    const EASING = 'cubic-bezier(0.4, 0, 0.2, 1)'; // Smooth, graceful ease-in-out so it starts gently without sudden jerk
+    const DURATION = 900; // Responsive, smooth 900ms cinematic opening animation
+    const EASING = 'cubic-bezier(0.22, 1, 0.36, 1)'; // Immediate feedback with graceful deceleration
 
-    // Top section (flap + seal) slides smoothly UP without any opacity fading
+    // Safety fallback: guarantee envelope disappears even if animation promises stall
+    const fallbackTimer = setTimeout(() => {
+      finishOpen();
+    }, DURATION + 100);
+
+    // Top section (flap + seal) slides smoothly UP
     const topAnim = anim(envTop, [
       { transform: 'translateY(0)' },
       { transform: 'translateY(-125%)' }
     ], { duration: DURATION, easing: EASING });
 
-    // Bottom section (pocket body + fill) slides smoothly DOWN without any opacity fading
+    // Bottom section (pocket body + fill) slides smoothly DOWN
     const bottomAnim = anim(envBottom, [
       { transform: 'translateY(0)' },
       { transform: 'translateY(125%)' }
     ], { duration: DURATION, easing: EASING });
 
     await Promise.all([topAnim, bottomAnim]);
+    clearTimeout(fallbackTimer);
     finishOpen();
   }
 
@@ -217,25 +261,6 @@
     const el = $('#' + id);
     el.addEventListener('input', () => setInvalid(el, !rules[id](el.value)));
   });
-
-  // Track unique invitation code from URL or session/local storage
-  function getActiveInviteCode() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const fromUrl = urlParams.get('code') || urlParams.get('invite');
-    const fromSession = sessionStorage.getItem('cayc_invite_code');
-    const fromLocal = localStorage.getItem('cayc_invite_code');
-    const code = (fromUrl || fromSession || fromLocal || inviteCode || '').trim().toUpperCase();
-    if (code) {
-      inviteCode = code;
-      sessionStorage.setItem('cayc_invite_code', code);
-      localStorage.setItem('cayc_invite_code', code);
-      const hiddenInput = $('#formInviteCode');
-      if (hiddenInput) hiddenInput.value = code;
-    }
-    return code;
-  }
-
-  let inviteCode = getActiveInviteCode();
 
   // Submit RSVP to backend (MongoDB Atlas) with unique link support & automatic retry
   async function submitRSVP(payload) {
@@ -493,10 +518,32 @@
     const el = e.target.closest('[data-action]');
     if (el && actions[el.dataset.action]) actions[el.dataset.action](el, e);
   });
-  $('#seal').dataset.action = 'open';
-  envelope.addEventListener('click', e => {
-    if (!opened && !e.target.closest('#seal')) openEnvelope();
-  });
+  // Direct envelope click listeners: clicking seal or envelope immediately opens it
+  const sealBtn = $('#seal');
+  if (sealBtn) {
+    sealBtn.dataset.action = 'open';
+    sealBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      openEnvelope();
+    });
+  }
+  if (envelope) {
+    envelope.addEventListener('click', () => {
+      openEnvelope();
+    });
+  }
+  const envTopEl = $('#envTop');
+  if (envTopEl) {
+    envTopEl.addEventListener('click', () => {
+      openEnvelope();
+    });
+  }
+  const envBottomEl = $('#envBottom');
+  if (envBottomEl) {
+    envBottomEl.addEventListener('click', () => {
+      openEnvelope();
+    });
+  }
 
   /* ---------- start ---------- */
   async function initInvitation() {
