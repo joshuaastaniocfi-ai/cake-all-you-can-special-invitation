@@ -735,7 +735,7 @@
               <td style="color:#7a6348">${registeredDate}</td>
               <td style="text-align:right">
                 <a href="${fullUrl}" target="_blank" class="btn outline sm" style="text-decoration:none">Test Link</a>
-                ${isUsed ? `<button class="btn outline sm" style="margin-left:4px" onclick="resetLink('${item.code}')">Reset</button>` : ''}
+                ${(isUsed || isDeclined) ? `<button class="btn outline sm" style="margin-left:4px" onclick="resetLink('${item.code}')">Reset</button>` : ''}
                 <button class="btn outline sm" style="margin-left:4px;color:var(--danger)" onclick="deleteLink('${item.code}')">Delete</button>
               </td>
             </tr>
@@ -831,3 +831,4 @@
   </script>
 </body>
 </html>
+

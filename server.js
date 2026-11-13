@@ -292,12 +292,10 @@ apiRouter.post('/rsvp', async (req, res) => {
           message: 'This invitation link has already been used and registered.'
         });
       }
+
+      // If user previously declined, clear that declined entry so it updates cleanly
       if (invite.status === 'declined') {
-        return res.status(400).json({
-          ok: false,
-          error: 'declined',
-          message: 'This invitation was previously marked as declined.'
-        });
+        await RSVP.deleteMany({ inviteCode: code, response: 'declined' });
       }
 
       // Calculate sequential guest pass number
@@ -382,10 +380,19 @@ apiRouter.post('/rsvp/decline', async (req, res) => {
     if (mongoose.connection.readyState === 1) {
       if (code) {
         const invite = await Invite.findOne({ code });
-        if (invite && invite.status === 'available') {
+        if (invite) {
+          if (invite.status === 'used') {
+            return res.status(400).json({
+              ok: false,
+              error: 'already_used',
+              message: 'This invitation has already been used and cannot be changed.'
+            });
+          }
           invite.status = 'declined';
           invite.usedAt = new Date();
           await invite.save();
+          // Remove duplicate decline records for this code
+          await RSVP.deleteMany({ inviteCode: code, response: 'declined' });
         }
       }
       const declineDoc = new RSVP({
@@ -551,13 +558,15 @@ apiRouter.post('/admin/reset-link', requireAdmin, async (req, res) => {
     if (!code) return res.status(400).json({ ok: false, error: 'Missing code' });
     await connectDB();
 
+    const normalizedCode = code.toUpperCase();
     if (mongoose.connection.readyState === 1) {
       await Invite.updateOne(
-        { code: code.toUpperCase() },
+        { code: normalizedCode },
         { $set: { status: 'available' }, $unset: { usedAt: '', guest: '' } }
       );
+      await RSVP.deleteMany({ inviteCode: normalizedCode });
     } else {
-      const inv = memoryInvites.get(code.toUpperCase());
+      const inv = memoryInvites.get(normalizedCode);
       if (inv) {
         inv.status = 'available';
         delete inv.usedAt;
