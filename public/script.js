@@ -88,8 +88,12 @@
   window.addEventListener('resize', onScroll, { passive: true });
 
   /* ---------- screens ---------- */
+  let isInviteUsed = false;
   const screens = $$('.screen');
   function show(id) {
+    if (isInviteUsed && (id === 'form' || id === 'confirm')) {
+      id = 'alreadyUsed';
+    }
     screens.forEach(s => { s.hidden = s.id !== id; });
     window.scrollTo(0, 0);
     document.body.dataset.bg = 'cream';
@@ -214,7 +218,8 @@
         submitBtn.textContent = 'Confirm & get my guest pass';
       }
       if (serverRes.error === 'already_used') {
-        alert('This invitation link has already been registered.');
+        isInviteUsed = true;
+        alert('This invitation link has already been registered and cannot be reused.');
         show('alreadyUsed');
         return;
       } else if (serverRes.error === 'invalid_code' || serverRes.error === 'missing_code') {
@@ -236,6 +241,9 @@
       return;
     }
 
+    // Mark as permanently used on client to lock the link from re-use
+    isInviteUsed = true;
+
     let num;
     if (serverRes && serverRes.no) {
       num = serverRes.no;
@@ -252,6 +260,8 @@
       submitBtn.textContent = 'Confirm & get my guest pass';
     }
 
+    form.reset();
+
     const badge = $('#passBadge'); if (badge) badge.innerHTML = '✓&nbsp; REGISTRATION COMPLETE';
     const headline = $('#passHeadline'); if (headline) headline.innerHTML = 'You’re on the<br>guest list!';
     $('#passName').textContent = `${data.first.trim()} ${data.last.trim()}`;
@@ -259,7 +269,7 @@
     $('#passRef').textContent = `GL · 2026 · ${num}`;
     const pass = $('.pass'); pass.style.animation = 'none'; void pass.offsetWidth; pass.style.animation = '';
     const passBack = $('#pass .back');
-    if (passBack) passBack.dataset.go = 'form';
+    if (passBack) passBack.dataset.go = 'alreadyUsed';
     show('pass');
   });
 
@@ -334,10 +344,20 @@
 
   /* ---------- every button, through one delegated handler ---------- */
   const actions = {
-    open: () => openEnvelope(),
+    open: () => {
+      if (isInviteUsed) {
+        show('alreadyUsed');
+        return;
+      }
+      openEnvelope();
+    },
     respond: () => {
       if (!inviteCode) {
         show('invalidLink');
+        return;
+      }
+      if (isInviteUsed) {
+        show('alreadyUsed');
         return;
       }
       show('confirm');
@@ -347,9 +367,17 @@
         show('invalidLink');
         return;
       }
+      if (isInviteUsed) {
+        show('alreadyUsed');
+        return;
+      }
       show('form');
     },
     decline: () => {
+      if (isInviteUsed) {
+        show('alreadyUsed');
+        return;
+      }
       fetch('/api/rsvp/decline', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -398,6 +426,7 @@
         const data = await res.json();
         if (data.ok) {
           if (data.status === 'used') {
+            isInviteUsed = true;
             opened = true; envelope.hidden = true; html.classList.remove('locked');
             show('alreadyUsed');
             return;

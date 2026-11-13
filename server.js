@@ -107,6 +107,18 @@ const rsvpSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
+// Enforce strict uniqueness: only one successful (accepted) registrant per unique invitation link
+rsvpSchema.index(
+  { inviteCode: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      response: 'accepted',
+      inviteCode: { $type: 'string', $gt: '' }
+    }
+  }
+);
+
 const RSVP = mongoose.models.RSVP || mongoose.model('RSVP', rsvpSchema);
 
 // 2. Invitation Link Model
@@ -289,13 +301,22 @@ apiRouter.post('/rsvp', async (req, res) => {
         return res.status(400).json({
           ok: false,
           error: 'already_used',
-          message: 'This invitation link has already been used and registered.'
+          message: 'This invitation link has already been used and registered. Each unique link can only be used once.'
         });
       }
 
-      // If user previously declined, clear that declined entry so it updates cleanly
-      if (invite.status === 'declined') {
-        await RSVP.deleteMany({ inviteCode: code, response: 'declined' });
+      // Strict check: verify no accepted RSVP already exists for this unique code
+      const existingRsvp = await RSVP.findOne({ inviteCode: code, response: 'accepted' });
+      if (existingRsvp) {
+        if (invite.status !== 'used') {
+          invite.status = 'used';
+          await invite.save();
+        }
+        return res.status(400).json({
+          ok: false,
+          error: 'already_used',
+          message: 'This invitation link has already been registered. Each unique link can only be used once.'
+        });
       }
 
       // Calculate sequential guest pass number
@@ -313,24 +334,52 @@ apiRouter.post('/rsvp', async (req, res) => {
         address: address ? address.trim() : ''
       };
 
-      // Mark invite as used
-      if (invite) {
-        invite.status = 'used';
-        invite.usedAt = new Date();
-        invite.guest = guestData;
-        await invite.save();
+      // Atomic document-level claim: only update if status is still available or declined!
+      // This prevents race conditions from allowing two simultaneous registrants on the same link.
+      const updatedInvite = await Invite.findOneAndUpdate(
+        { code, status: { $in: ['available', 'declined'] } },
+        {
+          $set: {
+            status: 'used',
+            usedAt: new Date(),
+            guest: guestData
+          }
+        },
+        { new: true }
+      );
+
+      if (!updatedInvite) {
+        return res.status(400).json({
+          ok: false,
+          error: 'already_used',
+          message: 'This invitation link has already been registered. Each unique link can only be used once.'
+        });
       }
 
-      // Save RSVP record
-      const rsvpDoc = new RSVP({
-        ...guestData,
-        inviteCode: code || 'DIRECT',
-        response: 'accepted',
-        createdAt: new Date()
-      });
-      await rsvpDoc.save();
+      // Clear any prior declined entry so only this single accepted registration exists
+      await RSVP.deleteMany({ inviteCode: code, response: 'declined' });
 
-      console.log(`Saved RSVP to MongoDB Atlas: ${fullName} (GUEST ${guestNoStr}) [Invite: ${code || 'None'}]`);
+      // Save RSVP record (protected also by unique partial index in DB)
+      try {
+        const rsvpDoc = new RSVP({
+          ...guestData,
+          inviteCode: code,
+          response: 'accepted',
+          createdAt: new Date()
+        });
+        await rsvpDoc.save();
+      } catch (err) {
+        if (err.code === 11000) {
+          return res.status(400).json({
+            ok: false,
+            error: 'already_used',
+            message: 'This invitation link has already been registered.'
+          });
+        }
+        throw err;
+      }
+
+      console.log(`Saved RSVP to MongoDB Atlas: ${fullName} (GUEST ${guestNoStr}) [Invite: ${code}]`);
 
       return res.json({
         ok: true,
@@ -340,22 +389,34 @@ apiRouter.post('/rsvp', async (req, res) => {
       });
     } else {
       // Local fallback
+      if (!code || !memoryInvites.has(code)) {
+        return res.status(404).json({ ok: false, error: 'invalid_code', message: 'Invitation link does not exist.' });
+      }
+      const inv = memoryInvites.get(code);
+      if (inv.status === 'used') {
+        return res.status(400).json({
+          ok: false,
+          error: 'already_used',
+          message: 'This invitation link has already been used. Each unique link can only be used once.'
+        });
+      }
+
       fallbackGuestCount += 1;
       const guestNoStr = String(fallbackGuestCount).padStart(3, '0');
       const guestData = {
         guestNo: guestNoStr,
-        first, last, name: fullName, email, mobile, social, address
+        first: first.trim(),
+        last: last.trim(),
+        name: fullName,
+        email: email.trim(),
+        mobile: mobile.trim(),
+        social: Array.isArray(social) ? social : [],
+        address: address ? address.trim() : ''
       };
 
-      if (code && memoryInvites.has(code)) {
-        const inv = memoryInvites.get(code);
-        if (inv.status === 'used') {
-          return res.status(400).json({ ok: false, error: 'already_used', message: 'This invitation link has already been used.' });
-        }
-        inv.status = 'used';
-        inv.usedAt = new Date();
-        inv.guest = guestData;
-      }
+      inv.status = 'used';
+      inv.usedAt = new Date();
+      inv.guest = guestData;
 
       return res.json({
         ok: true,
@@ -540,10 +601,12 @@ apiRouter.post('/admin/delete-link', requireAdmin, async (req, res) => {
     if (!code) return res.status(400).json({ ok: false, error: 'Missing code' });
     await connectDB();
 
+    const normalizedCode = code.toUpperCase();
     if (mongoose.connection.readyState === 1) {
-      await Invite.deleteOne({ code: code.toUpperCase() });
+      await Invite.deleteOne({ code: normalizedCode });
+      await RSVP.deleteMany({ inviteCode: normalizedCode });
     } else {
-      memoryInvites.delete(code.toUpperCase());
+      memoryInvites.delete(normalizedCode);
     }
     res.json({ ok: true });
   } catch (err) {
