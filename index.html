@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en" class="locked">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Goldilocks · Cake All You Can · You’re Invited</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;1,500&family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Questrial&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body data-bg="gold">
+
+  <!-- Shared decorative background (cloned into every screen marked data-decor) -->
+  <template id="decor-tpl">
+    <div class="bg"><img src="assets/bg.png" alt=""></div>
+    <div class="decor">
+      <div class="w p31">
+        <div class="r">
+          <div class="crop petal-a"><img src="assets/petals-a.png" alt=""></div>
+        </div>
+      </div>
+      <div class="w f41">
+        <div class="r"><img class="full" src="assets/petals-b.png" alt=""></div>
+      </div>
+      <div class="cake straw"><img src="assets/cakes-strawberry.png" alt=""></div>
+      <div class="cake tira"><img src="assets/cakes-strawberry.png" alt=""></div>
+      <div class="cake matcha"><img src="assets/cakes-matcha.png" alt=""></div>
+      <div class="cake choco"><img src="assets/cakes-matcha.png" alt=""></div>
+      <div class="w f52">
+        <div class="r"><img class="full" src="assets/flowers.png" alt=""></div>
+      </div>
+      <div class="w f53">
+        <div class="r">
+          <div class="crop"><img src="assets/flowers.png" alt="" style="left:0;top:0;width:100%;height:100%"></div>
+        </div>
+      </div>
+      <div class="w p32">
+        <div class="r">
+          <div class="crop petal-a"><img src="assets/petals-a.png" alt=""></div>
+        </div>
+      </div>
+      <div class="w p33">
+        <div class="r">
+          <div class="crop petal-a"><img src="assets/petals-a.png" alt=""></div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <!-- ============ 1 · ENVELOPE (full-screen overlay) ============ -->
+  <div class="envelope" id="envelope" aria-label="Sealed envelope">
+    <div class="env-backdrop" id="envBackdrop"></div>
+    <div class="env-scene" id="envScene">
+      <!-- Top flap & wax seal (slides UP on open) -->
+      <div class="env-top" id="envTop">
+        <div class="env-top-fill"></div>
+        <div class="flap" id="flap">
+          <img src="assets/envelope-flap.svg" alt="">
+        </div>
+        <button type="button" class="seal" id="seal" data-action="open" aria-label="Open your invitation">
+          <img src="assets/wax-seal.png" alt="">
+        </button>
+      </div>
+      <!-- Bottom pocket (slides DOWN on open) -->
+      <div class="env-bottom" id="envBottom">
+        <img class="env-body" src="assets/envelope-body.png" alt="">
+        <div class="env-fill"></div>
+      </div>
+    </div>
+  </div>
+
+  <main class="stage" id="stage">
+
+    <!-- ============ 2 · INVITATION ============ -->
+    <section class="screen" id="invite" data-decor data-dy="0" data-flower="-202px" aria-label="Invitation">
+
+      <!-- title -->
+      <div class="w" style="left:8px;top:214px;width:429.307px;height:275.216px">
+        <div class="r" style="width:422.022px;height:263.377px;rotate:1.62deg">
+          <div class="crop"><img src="assets/title-art.png" alt="Cake All You Can"
+              style="height:200.27%;left:-2.92%;top:9.5%;width:100%"></div>
+        </div>
+      </div>
+      <p class="t c serif"
+        style="left:50%;top:242px;font-size:20px;line-height:1;letter-spacing:1px;color:#582c00;white-space:nowrap">YOU
+        ARE INVITED TO</p>
+      <p class="t serif"
+        style="left:50%;transform:translateX(-50%);top:460px;width:230px;font-size:20px;line-height:1.15;letter-spacing:-.3px;color:#582c00;text-align:center">In
+        Celebration of<br>International Cake Day</p>
+      <img class="abs" src="assets/logo.png" alt="Goldilocks"
+        style="left:90px;top:564px;width:101px;height:25px;object-fit:cover">
+      <img class="abs" src="assets/robinsons.png" alt="Robinsons Tacloban"
+        style="left:234px;top:564px;width:93px;height:25px;object-fit:cover">
+
+      <!-- intro copy -->
+      <img class="abs" src="assets/cake-matcha-alone.png" alt="Matcha cake"
+        style="left:162px;top:1066px;width:78px;height:68px;object-fit:contain">
+      <div class="t body-text" style="left:44px;top:1158px;width:314px;text-align:center;font-family:var(--sans);font-size:11px;color:#582c00">
+        <p style="margin-bottom:24px;line-height:1.55">In celebration of International Cake Day, Goldilocks<br>cordially invites you to an exclusive, grand event:<br><strong style="font-weight:600;color:#582c00">“Cake All You Can!”</strong></p>
+        <p style="line-height:1.55">Join us for an unforgettable evening featuring a grand<br>cake buffet spread of unlimited Goldilocks signature<br>cakes, pastries, and special gifts.</p>
+      </div>
+
+      <!-- lower decorative flowers / cakes -->
+      <div class="w"
+        style="left:-238.28px;top:1229.24px;width:369.967px;height:490.726px;opacity:.68;pointer-events:none">
+        <div class="r" style="width:369.967px;height:490.726px;scale:1 -1">
+          <div class="crop petal-a"><img src="assets/petals-a.png" alt=""></div>
+        </div>
+      </div>
+      <div class="w" style="left:-136.86px;top:1574.79px;width:334.459px;height:298.015px;pointer-events:none">
+        <div class="r" style="width:308px;height:267px;rotate:6.06deg;opacity:.56">
+          <div class="crop"><img src="assets/petals-b.png" alt=""
+              style="height:163.3%;left:-.04%;top:-28.46%;width:100.09%"></div>
+        </div>
+      </div>
+      <div class="w" style="left:125px;top:1572px;width:434.331px;height:333.709px;pointer-events:none">
+        <div class="r" style="width:390.655px;height:262.649px;rotate:-11.23deg;opacity:.6">
+          <div class="crop"><img src="assets/ube.png" alt="" style="height:210.47%;left:-.02%;top:0;width:100.05%">
+          </div>
+        </div>
+      </div>
+      <div class="w" style="left:208px;top:1648px;width:457.835px;height:552.978px;pointer-events:none">
+        <div class="r" style="width:369.967px;height:490.726px;rotate:168.86deg;scale:1 -1;opacity:.35">
+          <div class="crop petal-a"><img src="assets/petals-a.png" alt=""></div>
+        </div>
+      </div>
+      <div class="w" style="left:-198px;top:2051px;width:369.967px;height:490.726px;opacity:.83;pointer-events:none">
+        <div class="r" style="width:369.967px;height:490.726px">
+          <div class="crop petal-a"><img src="assets/petals-a.png" alt=""></div>
+        </div>
+      </div>
+      <div class="w" style="left:186.55px;top:2314.79px;width:334.459px;height:298.015px;pointer-events:none">
+        <div class="r" style="width:308px;height:267px;rotate:173.94deg;scale:1 -1;opacity:.56">
+          <div class="crop"><img src="assets/petals-b.png" alt=""
+              style="height:163.3%;left:-.04%;top:-28.46%;width:100.09%"></div>
+        </div>
+      </div>
+      <div class="w" style="left:-190px;top:2347px;width:444.648px;height:353.447px;pointer-events:none">
+        <div class="r" style="width:390.655px;height:262.649px;rotate:14.75deg;opacity:.58">
+          <div class="crop"><img src="assets/ube.png" alt=""
+              style="height:210.47%;left:4.34%;top:-100.79%;width:100.05%"></div>
+        </div>
+      </div>
+
+      <!-- venue card (pinned paper) -->
+      <div class="w" style="left:4.84px;top:1357.48px;width:407.493px;height:326.251px">
+        <div class="r" style="width:382px;height:292px;rotate:-5.33deg">
+          <div class="crop"><img src="assets/paper.png" alt=""
+              style="height:185.28%;left:-.02%;top:-64.15%;width:100.04%"></div>
+        </div>
+      </div>
+      <div class="w" style="left:130.85px;top:1405px;width:164.239px;height:108.752px">
+        <div class="r" style="width:158.178px;height:98.717px;rotate:-3.71deg">
+          <div class="crop"><img src="assets/title-art.png" alt=""
+              style="height:200.27%;left:-2.92%;top:9.5%;width:100%"></div>
+        </div>
+      </div>
+      <img class="abs" src="assets/icon-vector.svg" alt=""
+        style="left:199.85px;top:1502.77px;width:21.294px;height:26.367px;rotate:-5.33deg">
+      <div class="w" style="left:100.85px;top:1522px;width:227.084px;height:74.81px">
+        <p class="serif"
+          style="width:235px;rotate:-5.33deg;font-family:var(--serif);font-weight:700;font-size:12px;line-height:1.35;letter-spacing:-.2px;text-align:center;color:#512800">
+          Level 1, Expansion Activity Area, Robinsons<br>Marasbaras Tacloban</p>
+      </div>
+      <img class="abs" src="assets/icon-calendar.svg" alt=""
+        style="left:208.7px;top:1575.08px;width:18.717px;height:20.907px;rotate:-5.33deg">
+      <div class="w" style="left:96.85px;top:1588.75px;width:245px;height:40.397px">
+        <p class="serif"
+          style="width:245px;rotate:-5.33deg;font-family:var(--serif);font-weight:700;font-size:12px;line-height:1.2;letter-spacing:-.2px;text-align:center;color:#512800;white-space:nowrap">
+          November 30, 2026 3:00 PM - 8:00 PM</p>
+      </div>
+      <img class="abs" src="assets/pin-red.png" alt="Push pin"
+        style="left:177px;top:1381px;width:32px;height:33px;object-fit:contain;z-index:2">
+
+      <!-- special guest -->
+      <img class="abs" src="assets/gift.png" alt=""
+        style="left:148px;top:1679px;width:107px;height:152px;object-fit:cover">
+      <p class="t serif sub" style="left:111px;top:1845px;width:180px;text-align:center">SPECIAL GUEST INCLUDED</p>
+      <p class="t body-text" style="left:44px;top:1910px;width:314px;text-align:center;font-family:var(--sans);font-size:11px;line-height:1.55;color:#582c00">Unlimited self-serve access to our grand cake buffet
+        spread featuring signature Goldilocks Premiums, Signature, Classic Cakes, and Pasalubong.</p>
+      <p class="t body-text" style="left:145px;top:1971px;width:112px;font-family:var(--sans);font-size:11px;color:#582c00;white-space:nowrap">Special Tokens</p>
+
+      <!-- dress code -->
+      <p class="t serif"
+        style="left:129px;top:2187px;width:144px;font-size:24px;line-height:1;letter-spacing:-.48px;color:var(--brown-900)">
+        DRESS CODE</p>
+      <div class="t body-text" style="left:48px;top:2239px;line-height:1.55">
+        We want our guests to feel completely relaxed and ready for an afternoon of sweet treats! The suggested dress
+        style is Casual, Smart Casual, or Comfortable Day Wear.<br><br>Feel free to wear casual dresses, stylish tops,
+        polo shirts, chinos, neat jeans, or comfortable casual footwear—whatever makes you feel comfortable and ready to
+        enjoy our grand cake buffet!
+      </div>
+      <img class="abs" src="assets/palette.png" alt="Suggested color palette: shades of yellow"
+        style="left:88px;top:2417px;width:225px;height:282px;object-fit:cover">
+
+      <!-- Closing note & signature -->
+      <p class="t body-text" style="left:41px;top:2740px;font-weight:600">Please kindly respond before November 25,
+        2026, to reserve your slot.</p>
+      <p class="t body-text"
+        style="left:128px;top:2825px;width:145px;font-family:'Century Gothic','Questrial','Montserrat',var(--sans),sans-serif;font-style:italic;line-height:1.4">
+        Warmest regards,<br><br>The Goldilocks Team</p>
+      <img class="abs" src="assets/signature.png" alt=""
+        style="left:159px;top:2870px;width:84px;height:21px;object-fit:cover">
+    </section>
+
+    <!-- ============ 3 · RSVP DECISION ============ -->
+    <section class="screen" id="confirm" hidden data-decor data-dy="260px" data-flower="-577px" style="height:1259px"
+      aria-label="RSVP">
+      <img class="logo" src="assets/logo.png" alt="Goldilocks" style="top:52px">
+      <h1 class="headline serif" style="top:107px">A sweet invitation,<br>just for you.</h1>
+      <div class="card" style="top:240px;height:520px">
+        <p class="t eyebrow" style="left:24px;top:26.5px">CAKE ALL YOU CAN</p>
+        <h2 class="t serif" style="left:24px;top:59.5px;font-size:32px;line-height:1.05">Will you join us?</h2>
+        <p class="t" style="left:24px;top:106.5px;font-size:13px;line-height:1.55;color:var(--muted)">Celebrate
+          International Cake Day with<br>sweet treats and even sweeter company.</p>
+        <div class="divider" style="top:178.5px"></div>
+        <p class="t" style="left:24px;top:199.5px;font-size:12px;font-weight:600;line-height:1.55">NOVEMBER 30, 2026</p>
+        <p class="t" style="left:24px;top:223.5px;font-size:13px;line-height:1.55;color:var(--muted)">3:00 PM – 8:00 PM
+        </p>
+        <p class="t" style="left:24px;top:257.5px;font-size:12px;line-height:1.55;color:var(--muted)">Level 1, Expansion
+          Activity Area<br>Robinsons Marasbaras Tacloban</p>
+        <button type="button" class="btn primary abs" id="accept" data-action="accept"
+          style="left:22.5px;top:330.5px;width:306px;height:54px;font-size:14px">Yes, I’ll be there</button>
+        <button type="button" class="btn ghost abs" id="decline" data-action="decline"
+          style="left:22.5px;top:396.5px;width:306px;height:54px;font-size:14px">No, I can’t make it</button>
+        <p class="t" style="left:24px;top:471.5px;font-size:10px;line-height:1.55;color:var(--muted)">Please respond
+          before November 25, 2026.</p>
+      </div>
+      <p class="t c serif" style="top:786px;width:338px;font-size:13px;line-height:1.05">A celebration made sweeter with
+        you.</p>
+    </section>
+
+    <!-- ============ 4 · GUEST FORM ============ -->
+    <section class="screen" id="form" hidden data-decor data-dy="540px" data-flower="-202px" style="height:1259px"
+      aria-label="Guest information">
+      <button type="button" class="back" data-go="confirm"><img src="assets/icon-back.svg" alt="">Your
+        invitation</button>
+      <img class="logo" src="assets/logo.png" alt="Goldilocks" style="left:151px;top:114px">
+      <h1 class="t c serif" style="top:169px;width:354px;font-size:38px;line-height:1.1">A few sweet details.</h1>
+      <p class="t c" style="top:222px;width:354px;font-size:13px;line-height:1.5;color:var(--muted)">Tell us a little
+        about yourself so we can<br>get your special guest pass ready.</p>
+      <div class="steps"><span class="on">01&nbsp; YOUR DETAILS</span><span class="off">02&nbsp; GUEST PASS</span></div>
+
+      <form class="form" id="guestForm" novalidate>
+        <h2>GUEST INFORMATION</h2>
+        <p class="req">* Required fields</p>
+        <div class="row">
+          <div class="field"><label for="first">First name *</label><input id="first" name="first" placeholder="Juan"
+              autocomplete="given-name" required>
+            <p class="err">Required</p>
+          </div>
+          <div class="field"><label for="last">Last name *</label><input id="last" name="last" placeholder="Dela Cruz"
+              autocomplete="family-name" required>
+            <p class="err">Required</p>
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:12px"><label for="email">Email address *</label><input id="email"
+            name="email" type="email" placeholder="e.g.juandelacruz@example.com" autocomplete="email" required>
+          <p class="help">Your event updates will be sent here.</p>
+          <p class="err">Enter a valid email address</p>
+        </div>
+        <div class="field"><label for="mobile">Mobile number *</label><input id="mobile" name="mobile" type="tel"
+            placeholder="e.g. +63 917 123 4567" autocomplete="tel" required>
+          <p class="err">Enter a valid mobile number</p>
+        </div>
+        <div class="field"><label for="social">Social Media Accounts</label>
+          <div class="social"><input id="social" name="social" placeholder="e.g. @username"><button type="button"
+              class="add" id="addSocial" data-action="addSocial" aria-label="Add another account"><img
+                src="assets/icon-plus.svg" alt="" width="23" height="23"></button></div>
+          <div class="social-extra" id="socialExtra"></div>
+        </div>
+        <div class="field"><label for="address">Address</label><textarea id="address" name="address"
+            placeholder="e.g. 1234 Street, Barangay San Jose, Tacloban City"></textarea></div>
+        <label class="consent" id="consentWrap"><input type="checkbox" id="consent" checked><span
+            class="box">✓</span><span>I agree to the use of my details for event registration and guest communications.
+            *</span></label>
+        <button class="btn primary submit" type="submit">Confirm &amp; get my guest pass</button>
+        <p class="note">One invitation · One special guest pass</p>
+      </form>
+
+      <p class="t c" style="top:1103px;width:354px;font-size:11px;font-weight:500;line-height:1.5">November 30, 2026 ·
+        3:00 PM – 8:00 PM</p>
+      <p class="t c"
+        style="top:1120px;width:257px;font-size:11px;line-height:1.35;letter-spacing:-.22px;color:var(--brown-900)">
+        Level 1, Expansion Activity Area, Robinsons Marasbaras Tacloban</p>
+    </section>
+
+    <!-- ============ 5 · GUEST PASS ============ -->
+    <section class="screen" id="pass" hidden data-decor data-dy="0px" data-flower="-202px" style="height:1259px"
+      aria-label="Special guest pass">
+      <button type="button" class="back" data-go="form"><img src="assets/icon-back.svg" alt="">Guest
+        information</button>
+      <div class="badge">✓&nbsp; REGISTRATION COMPLETE</div>
+      <h1 class="t c serif" style="top:201px;width:346px;font-size:43px;line-height:1.05">You’re on the<br>guest list!
+      </h1>
+      <p class="t c" style="top:309px;width:354px;font-size:13px;line-height:1.5;color:var(--muted)">Your sweetest
+        celebration awaits.</p>
+
+      <article class="pass">
+        <p class="k" style="top:29.5px">GOLDILOCKS &nbsp;/&nbsp; EXCLUSIVE INVITATION</p>
+        <h2 class="big serif">Special<br>Guest Pass</h2>
+        <div class="chip">ADMIT ONE</div>
+        <p style="top:242.5px;font-size:12px;font-weight:600;line-height:1.5">CAKE ALL YOU CAN</p>
+        <p style="top:265.5px;font-size:12px;line-height:1.5;color:var(--muted)">International Cake Day</p>
+        <div style="top:302.5px;height:1px;background:rgba(161,122,66,.4)"></div>
+        <p class="k" style="top:323.5px;color:var(--muted)">PREPARED FOR</p>
+        <p class="serif" id="passName" style="top:343.5px;font-size:33px;line-height:1.05">Juan Dela Cruz</p>
+        <p style="top:407.5px;font-size:13px;font-weight:600;line-height:1.5">November 30, 2026</p>
+        <p style="top:430.5px;font-size:12px;line-height:1.5">3:00 PM – 8:00 PM</p>
+        <p style="top:467.5px;font-size:12px;font-weight:500;line-height:1.5">Level 1, Expansion Activity
+          Area<br>Robinsons Marasbaras Tacloban</p>
+        <div class="ref">
+          <span style="left:24px;top:19px;font-weight:600" id="passNo">GUEST 001</span>
+          <span style="right:24px;top:19px;font-weight:500;color:var(--muted)" id="passRef">GL · 2026 · 001</span>
+          <span style="left:24px;top:43px;color:var(--muted)">Guest pass · present at event check-in</span>
+        </div>
+        <div class="shine"></div>
+      </article>
+
+      <h3 class="t c serif" style="top:1044px;width:354px;font-size:23px;line-height:1.05">A little reminder</h3>
+      <p class="t c" style="top:1082px;width:338px;font-size:12px;line-height:1.5;color:var(--muted)">Keep your pass
+        handy for event check-in.<br>We can’t wait to celebrate with you!</p>
+      <img class="logo" src="assets/logo.png" alt="Goldilocks" style="top:1181px">
+    </section>
+
+    <!-- ============ 6 · DECLINED ============ -->
+    <section class="screen" id="declined" hidden data-decor data-dy="260px" data-flower="-577px" style="height:1259px"
+      aria-label="Invitation declined">
+      <img class="logo" src="assets/logo.png" alt="Goldilocks" style="top:52px">
+      <h1 class="headline serif" style="top:107px;line-height:1.08">Until the next<br>sweet celebration.</h1>
+      <div class="card"
+        style="top:240px;height:475px;background:rgba(255,254,248,.94);border:1px solid #fff;border-radius:26px">
+        <p class="t eyebrow" style="left:24px;top:29px">RESPONSE RECEIVED</p>
+        <h2 class="t serif" style="left:24px;top:75px;font-size:36px;line-height:1.08">We’ll miss you!</h2>
+        <p class="t" style="left:28px;top:136px;width:298px;font-size:14px;line-height:1.55;color:var(--muted)">Thank
+          you for letting us know.<br>We understand you can’t make it<br>and hope to celebrate with you soon.</p>
+        <p class="t" style="left:28px;top:235px;width:298px;font-size:12px;line-height:1.55;color:var(--muted)">Your
+          invitation has been declined.<br>No guest pass will be issued.</p>
+        <button type="button" class="btn primary abs" id="rsvpAgain" data-action="respond"
+          style="left:23px;top:318px;width:306px;height:54px;font-size:12px">Changed your mind? RSVP again</button>
+        <button type="button" class="btn abs" id="backToInvite" data-action="backToInvite"
+          style="left:23px;top:386px;width:306px;height:48px;font-size:13px;border-radius:12px;color:var(--brown-800)">Back
+          to invitation</button>
+      </div>
+      <p class="t c serif" style="top:747px;width:322px;font-size:17px;line-height:1.08">Warmest wishes,<br>The
+        Goldilocks Team</p>
+    </section>
+
+  </main>
+
+  <!-- Floating RSVP CTA button -->
+  <button type="button" class="btn primary rsvp-fixed is-hidden" id="toRsvp" data-action="respond">Respond to invitation</button>
+
+  <!-- Floating scroll down indicator -->
+  <button type="button" class="arrow is-hidden" id="scrollDown" data-action="scrollDown" aria-label="Scroll down">
+    <img src="assets/icon-arrow-down.svg" alt="">
+  </button>
+
+  <script src="script.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,212 @@
+/* Goldilocks – Cake All You Can invitation */
+:root{
+  --brown-900:#512800; --brown-800:#58320e; --brown-700:#6a3c13; --brown-600:#80551d;
+  --muted:#755c3e; --gold:#f4c72f; --cream:#fffef8;
+  --serif:'Cormorant Garamond',serif; --sans:'Poppins',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{background:#fff6dc;font-family:var(--sans);color:var(--brown-800);overflow-x:hidden}
+body[data-bg="gold"]{background:var(--gold)}
+html.locked,html.locked body{overflow:hidden;height:100%}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+img{display:block}
+
+.stage{position:relative;width:402px;margin:0 auto;zoom:var(--s,1)}
+.screen{position:relative;width:402px;overflow:hidden;background:#fff}
+.screen[hidden]{display:none}
+.abs{position:absolute}
+
+/* ---------- decorative layers ---------- */
+.bg{position:absolute;left:0;top:0;width:402px;height:3026px;overflow:hidden;pointer-events:none}
+.bg img{position:absolute;height:100%;left:-159.45%;width:532.14%;max-width:none}
+.decor{position:absolute;left:0;top:0;width:402px;transform:translateY(var(--dy,0px));pointer-events:none}
+.w{position:absolute;display:flex;align-items:center;justify-content:center}
+.r{flex:none;position:relative}
+.crop{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.crop img{position:absolute;max-width:none}
+.full{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;max-width:none}
+
+.petal-a img{height:104.54%;left:1.97%;top:0;width:98.03%}
+.p31{left:-167px;top:380px;width:468.1px;height:559.61px}
+.p31 .r{width:369.967px;height:490.726px;rotate:167.4deg;scale:1 -1}
+.p32{left:-222px;top:505px;width:468.1px;height:559.61px}
+.p32 .r{width:369.967px;height:490.726px;rotate:167.4deg;scale:1 -1}
+.p33{left:183px;top:799px;width:387.61px;height:503.887px}
+.p33 .r{width:369.967px;height:490.726px;rotate:2.09deg;scale:1 -1}
+.f41{left:130px;top:var(--flower-top,-202px);width:387px;height:547px}
+.f41 .r{width:387px;height:547px;rotate:180deg}
+.f52{left:-178px;top:-301px;width:743.057px;height:625.41px}
+.f52 .r{width:448.261px;height:634.004px;rotate:-108.39deg}
+.f53{left:-213px;top:505px;width:708.063px;height:561.293px}
+.f53 .r{width:448.261px;height:634.004px;rotate:78.97deg;filter:blur(11.3px);opacity:.96}
+.cake{position:absolute}
+.cake img{position:absolute;max-width:none}
+.straw{left:223px;top:633px;width:249px;height:179px}
+.straw img{height:196.05%;left:-.01%;top:-96.05%;width:100.01%}
+.tira{left:176px;top:715px;width:296px;height:195px}
+.tira img{height:214.92%;left:-4.1%;top:-6.05%;width:100.01%}
+.matcha{left:-57px;top:633px;width:224px;height:153px}
+.matcha img{height:207.33%;left:-.01%;top:0;width:100.02%}
+.choco{left:-15px;top:723px;width:274px;height:187px}
+.choco img{height:207.33%;left:-.04%;top:-103.63%;width:100.02%}
+.cake{overflow:hidden}
+
+/* ---------- typography ---------- */
+.t{position:absolute;white-space:normal;text-align:center}
+.t.c{left:50%;transform:translateX(-50%)}
+.serif{font-family:var(--serif);font-weight:700}
+.btn{display:block;text-align:center;border-radius:14px;font-weight:600;transition:transform .15s,box-shadow .15s,background .2s}
+.btn.primary{background:var(--brown-700);color:#fff}
+.btn.primary:hover{background:#7b4719}
+.btn:active{transform:scale(.98)}
+.btn.ghost{background:rgba(255,253,245,.7);border:1px solid rgba(173,128,66,.5);color:var(--brown-800)}
+.btn.ghost:hover{background:#fff}
+.logo{position:absolute;left:151px;width:100px;height:25px;object-fit:cover}
+.back{position:absolute;left:24px;top:40px;height:40px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:500;color:var(--brown-800);z-index:2}
+.back img{width:24px;height:24px}
+.card{position:absolute;left:24px;width:354px;background:rgba(255,254,248,.9);border:1.5px solid rgba(255,255,255,.95);border-radius:26px;box-shadow:0 12px 32px rgba(128,83,28,.1)}
+.card .t{width:306px}
+
+/* ---------- 1. envelope ---------- */
+.envelope{position:fixed;inset:0;z-index:50;overflow:hidden;touch-action:manipulation;cursor:pointer}
+.envelope[hidden]{display:none}
+.env-backdrop{position:fixed;inset:0;background:var(--gold);z-index:0;pointer-events:none}
+.env-scene{position:absolute;left:50%;top:50%;width:402px;height:874px;margin:-437px 0 0 -201px;transform:scale(var(--k,1));z-index:1;pointer-events:none}
+
+.env-top{position:absolute;inset:0;z-index:2;will-change:transform;pointer-events:auto}
+.env-top-fill{position:absolute;left:-400px;right:-400px;top:-1200px;height:1200px;background:var(--gold)}
+.flap{position:absolute;left:-281px;top:-55px;width:964px;height:550px;pointer-events:none}
+.flap img{position:absolute;inset:0;width:100%;height:100%;max-width:none;transform:scaleY(-1);filter:drop-shadow(0 16px 14px rgba(120,70,0,.28))}
+
+.seal{position:absolute;left:98px;top:356px;width:195px;height:195px;border-radius:50%;filter:drop-shadow(0 8px 8px rgba(80,40,0,.38));transition:transform .18s ease,filter .18s ease;will-change:transform;cursor:pointer;z-index:3}
+.seal img{width:100%;height:100%;object-fit:cover;pointer-events:none}
+.seal:hover{transform:scale(1.03);filter:drop-shadow(0 12px 14px rgba(80,40,0,.45)) brightness(1.05)}
+.seal:active{transform:scale(0.96)}
+.seal:focus-visible{outline:3px solid #fff;outline-offset:6px}
+.seal:disabled{cursor:default}
+
+.env-bottom{position:absolute;inset:0;z-index:1;will-change:transform;pointer-events:auto}
+.env-body{position:absolute;left:-284px;top:-82px;width:929px;height:929px;object-fit:cover;max-width:none;pointer-events:none}
+.env-fill{position:absolute;left:-400px;right:-400px;top:704px;bottom:-1200px;background:var(--gold);pointer-events:none}
+.hint{position:absolute;top:590px;left:0;right:0;text-align:center;font-size:11px;font-weight:500;letter-spacing:.16em;color:var(--brown-900);opacity:.7;transition:opacity .2s ease;animation:blink 2.6s ease-in-out infinite;pointer-events:none}
+@keyframes blink{50%{opacity:.3}}
+
+/* ---------- 2. invitation ---------- */
+#invite{height:3026px;color:var(--brown-800)}
+#invite .body-text{font-size:11px;line-height:1.55;letter-spacing:normal;color:#582c00;font-family:var(--sans);width:315px;text-align:center}
+#invite .sub{width:180px;font-size:24px;line-height:1.15;letter-spacing:-.48px;color:var(--brown-900)}
+.arrow{
+  position:fixed;
+  bottom:84px;
+  left:50%;
+  transform:translateX(-50%);
+  width:28px;
+  height:28px;
+  z-index:20;
+  cursor:pointer;
+  background:none;
+  border:none;
+  padding:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  opacity:1;
+  visibility:visible;
+  transition:opacity .35s ease, transform .35s ease, visibility .35s;
+}
+.arrow img{
+  width:100%;
+  height:100%;
+  display:block;
+  animation:bob 1.6s ease-in-out infinite;
+  filter:drop-shadow(0 2px 5px rgba(244,189,70,.45)) drop-shadow(0 1px 2px rgba(88,44,0,.2));
+}
+@keyframes bob{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(6px)}
+}
+.arrow.is-hidden{
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+  transform:translateX(-50%) translateY(12px);
+}
+.rsvp-fixed{
+  position:fixed;
+  bottom:20px;
+  left:50%;
+  transform:translateX(-50%);
+  width:322px;
+  max-width:calc(100% - 32px);
+  height:54px;
+  font-size:14px;
+  line-height:54px;
+  z-index:30;
+  box-shadow:0 8px 24px rgba(88,50,14,.28);
+  opacity:1;
+  visibility:visible;
+  transition:opacity .3s ease, transform .3s ease, visibility .3s;
+}
+.rsvp-fixed.is-hidden{
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+  transform:translateX(-50%) translateY(16px);
+}
+
+/* ---------- 3. confirmation + declined ---------- */
+.headline{position:absolute;left:50%;transform:translateX(-50%);width:338px;top:187px;text-align:center;font-size:42px;line-height:1.05;color:var(--brown-800)}
+.eyebrow{font-size:11px;font-weight:600;color:var(--brown-600);line-height:1.55;letter-spacing:.02em}
+.divider{position:absolute;left:22.5px;width:306px;height:1px;background:rgba(205,186,138,.6)}
+
+/* ---------- 4. form ---------- */
+.steps{position:absolute;left:67px;top:278px;width:268px;height:24px;font-size:10px;line-height:1.5}
+.steps .on{position:absolute;left:0;font-weight:600;color:var(--brown-800)}
+.steps .off{position:absolute;left:151px;color:#94794e}
+.form{position:absolute;left:20px;top:320px;width:362px;padding:23px 21px 20px;background:rgba(255,254,248,.97);border:1px solid #e5d7b3;border-radius:24px;box-shadow:0 10px 30px rgba(128,83,28,.08)}
+.form h2{font-size:11px;font-weight:600;color:var(--brown-600);line-height:1.5}
+.form .req{font-size:10px;color:var(--muted);line-height:1.5;margin-bottom:14px}
+.row{display:flex;gap:16px}
+.field{flex:1;margin-bottom:18px}
+.field label{display:block;font-size:11px;font-weight:500;color:var(--brown-800);line-height:1.5;margin-bottom:6px}
+.field input,.field textarea{width:100%;background:rgba(255,255,255,.92);border:1px solid #d8c9a3;border-radius:10px;padding:14px 12px;font:italic 500 11px 'Montserrat',sans-serif;color:var(--brown-800);outline:none;transition:border .2s,box-shadow .2s}
+.field textarea{height:68px;resize:none;padding-top:13px;line-height:1.4}
+.field input::placeholder,.field textarea::placeholder{color:rgba(88,50,14,.55)}
+.field input:focus,.field textarea:focus{border-color:#b98a3f;box-shadow:0 0 0 3px rgba(244,199,47,.28)}
+.field .help{font-size:10px;color:var(--muted);margin-top:6px;line-height:1.5}
+.field .err{display:none;font-size:10px;color:#b3402a;margin-top:4px}
+.field.invalid input,.field.invalid textarea{border-color:#c4553d}
+.field.invalid .err{display:block}
+.social{display:flex;align-items:center;gap:8px}
+.social input{width:114px;padding:5px 11px;font-size:10px}
+.social .add{width:23px;height:23px}
+.social-extra{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.social-extra input{width:114px;padding:5px 11px;font-size:10px}
+.consent{display:flex;gap:11px;align-items:flex-start;font-size:10px;line-height:1.5;color:var(--muted);margin:2px 0 22px;cursor:pointer}
+.consent input{position:absolute;opacity:0}
+.consent .box{flex:none;width:20px;height:20px;border-radius:5px;background:var(--brown-700);color:#fff;font-size:14px;line-height:20px;text-align:center;font-weight:600;transition:background .2s}
+.consent input:not(:checked)+.box{background:#fff;border:1.5px solid #d8c9a3;color:transparent}
+.consent input:focus-visible+.box{outline:2px solid var(--gold);outline-offset:2px}
+.consent.invalid .box{border-color:#c4553d}
+.form .submit{width:100%;height:54px;font-size:13px}
+.form .note{text-align:center;font-size:10px;color:var(--muted);margin-top:18px;line-height:1.5}
+
+/* ---------- 5. pass ---------- */
+.badge{position:absolute;left:113px;top:148px;width:176px;height:31px;border-radius:16px;background:rgba(230,234,211,.97);color:#40532c;font-size:9px;font-weight:600;text-align:center;line-height:31px}
+.pass{position:absolute;left:24px;top:368px;width:354px;height:628px;border-radius:28px;border:1.5px solid rgba(255,255,255,.95);box-shadow:0 16px 40px rgba(107,69,29,.16),inset 0 2px 2px rgba(255,255,255,.8);overflow:hidden;background:linear-gradient(112.9deg,rgba(255,255,255,.82) 14.3%,rgba(255,248,220,.54) 53.6%,rgba(255,255,255,.76) 85.7%);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);transform-origin:50% 0;animation:passIn .9s cubic-bezier(.2,.8,.2,1) both}
+@keyframes passIn{from{opacity:0;transform:translateY(30px) rotateX(18deg)}}
+.pass>*{position:absolute;left:22.5px;width:306px}
+.pass .k{font-size:9px;font-weight:600;color:#75501c;line-height:1.5}
+.pass .big{top:65.5px;font-size:48px;line-height:1.05;color:var(--brown-800)}
+.pass .chip{top:185.5px;width:108px;height:28px;border-radius:14px;background:rgba(120,80,33,.1);font-size:9px;font-weight:600;text-align:center;line-height:28px;color:var(--brown-800)}
+.pass .ref{left:-1.5px;top:546.5px;width:354px;height:80px;background:rgba(255,255,255,.45);font-size:10px;line-height:1.5}
+.pass .ref span{position:absolute}
+.pass .shine{position:absolute;inset:0;left:0;width:auto;pointer-events:none;background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.55) 50%,transparent 60%);transform:translateX(-120%);animation:shine 2.4s 1s ease-out 1 forwards}
+@keyframes shine{to{transform:translateX(120%)}}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* keep every control above decorative layers */
+.btn,.back,.form,.seal,.consent{z-index:10}
+.back{position:absolute}
