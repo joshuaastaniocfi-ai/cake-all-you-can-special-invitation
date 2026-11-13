@@ -89,8 +89,38 @@
 
   /* ---------- screens ---------- */
   let isInviteUsed = false;
+  let isLinkValid = true;
+  let invalidLinkReason = 'This invitation link is not valid. Access to this celebration requires an official personal invitation link.';
+
+  /* ---------- Message Box Modal ---------- */
+  const msgBox = $('#msgBoxModal');
+  const msgBoxText = $('#msgBoxText');
+  const msgBoxTitle = $('#msgBoxTitle');
+  const msgBoxCloseBtn = $('#msgBoxCloseBtn');
+
+  function showMsgBox(message, title = 'Notice') {
+    if (msgBoxText) msgBoxText.textContent = message;
+    if (msgBoxTitle) msgBoxTitle.textContent = title;
+    if (msgBox) msgBox.style.display = 'flex';
+  }
+
+  function hideMsgBox() {
+    if (msgBox) msgBox.style.display = 'none';
+  }
+
+  if (msgBoxCloseBtn) msgBoxCloseBtn.addEventListener('click', hideMsgBox);
+  if (msgBox) {
+    msgBox.addEventListener('click', e => {
+      if (e.target === msgBox) hideMsgBox();
+    });
+  }
+
   const screens = $$('.screen');
   function show(id) {
+    if ((!isLinkValid || !inviteCode) && (id === 'form' || id === 'confirm')) {
+      showMsgBox(invalidLinkReason);
+      return;
+    }
     if (isInviteUsed && (id === 'form' || id === 'confirm')) {
       id = 'alreadyUsed';
     }
@@ -336,6 +366,10 @@
       openEnvelope();
     },
     respond: () => {
+      if (!isLinkValid || !inviteCode) {
+        showMsgBox(invalidLinkReason);
+        return;
+      }
       if (isInviteUsed) {
         show('alreadyUsed');
         return;
@@ -343,6 +377,10 @@
       show('confirm');
     },
     accept: () => {
+      if (!isLinkValid || !inviteCode) {
+        showMsgBox(invalidLinkReason);
+        return;
+      }
       if (isInviteUsed) {
         show('alreadyUsed');
         return;
@@ -350,6 +388,10 @@
       show('form');
     },
     decline: () => {
+      if (!isLinkValid || !inviteCode) {
+        showMsgBox(invalidLinkReason);
+        return;
+      }
       if (isInviteUsed) {
         show('alreadyUsed');
         return;
@@ -396,32 +438,44 @@
 
   /* ---------- start ---------- */
   async function initInvitation() {
-    if (inviteCode) {
-      try {
-        const res = await fetch(`/api/invite/verify?code=${encodeURIComponent(inviteCode)}`);
-        const data = await res.json();
-        if (data.ok) {
-          if (data.status === 'used') {
-            isInviteUsed = true;
-            opened = true; envelope.hidden = true; html.classList.remove('locked');
-            show('alreadyUsed');
-            return;
-          } else if (data.status === 'declined') {
-            opened = true; envelope.hidden = true; html.classList.remove('locked');
-            show('declined');
-            return;
-          }
-        } else if (data.error === 'not_found' || res.status === 404) {
-          sessionStorage.removeItem('cayc_invite_code');
-          inviteCode = '';
-          if (window.location.search) {
-            window.location.replace(window.location.pathname);
-            return;
-          }
+    if (!inviteCode) {
+      isLinkValid = false;
+      invalidLinkReason = 'This link is not valid. Access to this celebration requires an official personal invitation link.';
+      showMsgBox(invalidLinkReason);
+      show('invite');
+      document.body.dataset.bg = 'gold';
+      setArrowVisible(false);
+      setRsvpVisible(false);
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/invite/verify?code=${encodeURIComponent(inviteCode)}`);
+      const data = await res.json();
+      if (data.ok) {
+        isLinkValid = true;
+        if (data.status === 'used') {
+          isInviteUsed = true;
+          opened = true; envelope.hidden = true; html.classList.remove('locked');
+          show('alreadyUsed');
+          return;
+        } else if (data.status === 'declined') {
+          opened = true; envelope.hidden = true; html.classList.remove('locked');
+          show('declined');
+          return;
         }
-      } catch (e) {
-        console.warn('Backend verification offline', e);
+      } else if (data.error === 'not_found' || res.status === 404) {
+        isLinkValid = false;
+        invalidLinkReason = 'This link is not valid. This invitation code was not found in the official guest list.';
+        showMsgBox(invalidLinkReason);
+        show('invite');
+        document.body.dataset.bg = 'gold';
+        setArrowVisible(false);
+        setRsvpVisible(false);
+        return;
       }
+    } catch (e) {
+      console.warn('Backend verification offline', e);
     }
 
     const startId = location.hash.slice(1);

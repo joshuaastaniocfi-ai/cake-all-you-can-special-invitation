@@ -411,6 +411,22 @@
     <img src="assets/icon-arrow-down.svg" alt="">
   </button>
 
+  <!-- Message Box Modal for Invalid Link / Base URL without code -->
+  <div id="msgBoxModal" class="msg-box-overlay" style="display:none" role="dialog" aria-modal="true" aria-labelledby="msgBoxTitle">
+    <div class="msg-box-card">
+      <div class="msg-box-icon">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+      </div>
+      <h3 id="msgBoxTitle" class="msg-box-title serif">Notice</h3>
+      <p id="msgBoxText" class="msg-box-text">This invitation link is not valid.</p>
+      <button type="button" class="btn primary msg-box-btn" id="msgBoxCloseBtn">OK</button>
+    </div>
+  </div>
+
   <script src="script.js"></script>
 </body>
 
