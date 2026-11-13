@@ -6,8 +6,8 @@ if (!fs.existsSync(publicDir)) {
   fs.mkdirSync(publicDir, { recursive: true });
 }
 
-// Copy HTML, CSS, JS
-['index.html', 'styles.css', 'script.js'].forEach(file => {
+// Copy HTML, CSS, JS, Admin
+['index.html', 'styles.css', 'script.js', 'admin.html'].forEach(file => {
   const src = path.join(__dirname, file);
   const dest = path.join(publicDir, file);
   if (fs.existsSync(src)) {

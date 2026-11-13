@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Goldilocks · Invitation Admin Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --brown-900: #421e00;
+      --brown-800: #58320e;
+      --brown-700: #6a3c13;
+      --brown-600: #80551d;
+      --gold: #f4c72f;
+      --cream: #fffdf5;
+      --cream-card: #fffbf0;
+      --border: #ebdcb9;
+      --success: #2e7d32;
+      --danger: #c62828;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background: #fdf8eb;
+      color: var(--brown-800);
+      min-height: 100vh;
+      padding-bottom: 60px;
+    }
+    .serif { font-family: 'Cormorant Garamond', Georgia, serif; }
+
+    /* Header */
+    header {
+      background: #fff;
+      border-bottom: 1.5px solid var(--border);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 10px rgba(88,50,14,.04);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .brand img {
+      height: 28px;
+    }
+    .brand h1 {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--brown-900);
+      letter-spacing: .02em;
+    }
+    .brand span {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--brown-600);
+      background: #fff4d2;
+      padding: 3px 8px;
+      border-radius: 6px;
+      margin-left: 6px;
+    }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 9px 16px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all .2s;
+    }
+    .btn.primary {
+      background: var(--brown-700);
+      color: #fff;
+    }
+    .btn.primary:hover {
+      background: var(--brown-900);
+    }
+    .btn.outline {
+      background: #fff;
+      border: 1.5px solid var(--border);
+      color: var(--brown-800);
+    }
+    .btn.outline:hover {
+      background: #fdf5e2;
+    }
+    .btn.sm {
+      padding: 6px 10px;
+      font-size: 11px;
+    }
+
+    /* Container */
+    .container {
+      max-width: 1200px;
+      margin: 28px auto 0;
+      padding: 0 20px;
+    }
+
+    /* Auth modal */
+    .auth-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(45, 20, 0, .6);
+      backdrop-filter: blur(8px);
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .auth-card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 36px 30px;
+      width: 100%;
+      max-width: 380px;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0,0,0,.2);
+      border: 1px solid var(--border);
+    }
+    .auth-card img {
+      height: 32px;
+      margin: 0 auto 16px;
+    }
+    .auth-card h2 {
+      font-size: 24px;
+      color: var(--brown-900);
+      margin-bottom: 6px;
+    }
+    .auth-card p {
+      font-size: 12px;
+      color: #7a6348;
+      margin-bottom: 24px;
+    }
+    .auth-card input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid #d8c49e;
+      border-radius: 10px;
+      font-size: 15px;
+      text-align: center;
+      letter-spacing: .2em;
+      margin-bottom: 14px;
+      outline: none;
+    }
+    .auth-card input:focus {
+      border-color: var(--brown-700);
+    }
+    .auth-card .err {
+      color: var(--danger);
+      font-size: 11px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      display: none;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .stat-card {
+      background: #fff;
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 4px 15px rgba(88,50,14,.03);
+    }
+    .stat-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      background: #fff5da;
+    }
+    .stat-card.green .stat-icon { background: #e8f5e9; color: var(--success); }
+    .stat-card.orange .stat-icon { background: #fff3e0; color: #e65100; }
+    .stat-card.red .stat-icon { background: #ffebee; color: var(--danger); }
+    .stat-info .num {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--brown-900);
+      line-height: 1;
+    }
+    .stat-info .lbl {
+      font-size: 11px;
+      font-weight: 600;
+      color: #8c7353;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      margin-top: 5px;
+    }
+
+    /* Actions Panel */
+    .panel {
+      background: #fff;
+      border: 1.5px solid var(--border);
+      border-radius: 18px;
+      padding: 22px 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 20px rgba(88,50,14,.03);
+    }
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .panel-header h2 {
+      font-size: 22px;
+      color: var(--brown-900);
+    }
+    .create-bar {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      background: #fdfaf2;
+      padding: 14px 16px;
+      border-radius: 12px;
+      border: 1px dashed #dfceaa;
+    }
+    .create-bar input, .create-bar select {
+      padding: 9px 12px;
+      border: 1px solid #d8c49e;
+      border-radius: 8px;
+      font-size: 12px;
+      background: #fff;
+      outline: none;
+    }
+    .create-bar input { flex: 1; min-width: 180px; }
+
+    /* Filters Bar */
+    .filter-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .search-input {
+      flex: 1;
+      min-width: 240px;
+      max-width: 380px;
+      padding: 9px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 12px;
+      outline: none;
+      background: #fff;
+    }
+    .search-input:focus {
+      border-color: var(--brown-700);
+    }
+    .filter-buttons {
+      display: flex;
+      gap: 8px;
+    }
+    .filter-btn {
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      border: 1px solid var(--border);
+      background: #fff;
+      cursor: pointer;
+      color: var(--brown-800);
+    }
+    .filter-btn.active {
+      background: var(--brown-700);
+      color: #fff;
+      border-color: var(--brown-700);
+    }
+
+    /* Table */
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      text-align: left;
+    }
+    th {
+      background: #faf4e6;
+      color: var(--brown-900);
+      font-weight: 700;
+      padding: 12px 14px;
+      border-bottom: 1.5px solid var(--border);
+      white-space: nowrap;
+    }
+    td {
+      padding: 14px;
+      border-bottom: 1px solid #f2e9d8;
+      vertical-align: middle;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #fffcf5; }
+
+    /* Badges */
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .badge.available {
+      background: #e8f5e9;
+      color: var(--success);
+      border: 1px solid #c8e6c9;
+    }
+    .badge.used {
+      background: #efebe9;
+      color: var(--brown-700);
+      border: 1px solid #d7ccc8;
+    }
+    .badge.declined {
+      background: #ffebee;
+      color: var(--danger);
+      border: 1px solid #ffcdd2;
+    }
+
+    .code-pill {
+      font-family: monospace;
+      font-weight: 700;
+      background: #f7eee0;
+      color: var(--brown-900);
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+    }
+
+    .guest-info .name {
+      font-weight: 700;
+      color: var(--brown-900);
+    }
+    .guest-info .sub {
+      font-size: 11px;
+      color: #8c7353;
+      margin-top: 2px;
+    }
+
+    .copy-btn {
+      background: #f4ebda;
+      border: none;
+      padding: 5px 9px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--brown-900);
+      transition: background .15s;
+    }
+    .copy-btn:hover { background: #e5d4b8; }
+    .copy-btn.copied { background: #c8e6c9; color: var(--success); }
+
+    .empty-state {
+      padding: 40px;
+      text-align: center;
+      color: #8c7353;
+    }
+
+    /* Toast Notification */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--brown-900);
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      box-shadow: 0 10px 25px rgba(0,0,0,.2);
+      z-index: 1000;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all .25s ease;
+      pointer-events: none;
+    }
+    #toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Admin PIN Authentication Modal -->
+  <div class="auth-overlay" id="authModal">
+    <div class="auth-card">
+      <img src="assets/logo.png" alt="Goldilocks">
+      <h2 class="serif">Admin Access</h2>
+      <p>Enter the administrator PIN to manage invitation links & view registered guests.</p>
+      <input type="password" id="pinInput" placeholder="••••••••" autofocus>
+      <p class="err" id="pinError">Invalid Admin PIN</p>
+      <button type="button" class="btn primary" id="pinSubmit" style="width:100%;height:44px">Unlock Dashboard</button>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <img src="assets/logo.png" alt="Goldilocks">
+      <h1 class="serif" style="font-size:20px">Cake All You Can <span>Admin Monitor</span></h1>
+    </div>
+    <div class="header-actions">
+      <button class="btn outline" id="exportBtn">📥 Export CSV</button>
+      <button class="btn outline" id="refreshBtn">🔄 Refresh</button>
+      <button class="btn outline" id="logoutBtn" style="color:var(--danger)">Logout</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">🎟️</div>
+        <div class="stat-info">
+          <div class="num" id="statTotal">0</div>
+          <div class="lbl">Total Links Created</div>
+        </div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-icon">✅</div>
+        <div class="stat-info">
+          <div class="num" id="statAccepted">0</div>
+          <div class="lbl">Registered Guests</div>
+        </div>
+      </div>
+      <div class="stat-card orange">
+        <div class="stat-icon">⏳</div>
+        <div class="stat-info">
+          <div class="num" id="statAvailable">0</div>
+          <div class="lbl">Available Links</div>
+        </div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-icon">❌</div>
+        <div class="stat-info">
+          <div class="num" id="statDeclined">0</div>
+          <div class="lbl">Declined</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create Invitation Links Panel -->
+    <div class="panel">
+      <div class="panel-header">
+        <h2 class="serif">Generate Unique Invitation Links</h2>
+      </div>
+      <form class="create-bar" id="createForm">
+        <input type="text" id="recipientName" placeholder="Pre-assign to Guest Name (Optional, e.g. Sen. Juan Santos)">
+        <select id="linkCount">
+          <option value="1">Generate 1 Link</option>
+          <option value="5">Generate 5 Links</option>
+          <option value="10">Generate 10 Links</option>
+          <option value="25">Generate 25 Links</option>
+        </select>
+        <button type="submit" class="btn primary" id="generateBtn">+ Create Link(s)</button>
+      </form>
+    </div>
+
+    <!-- Invitation List Panel -->
+    <div class="panel">
+      <div class="panel-header">
+        <h2 class="serif">Invitation Links &amp; Attendee Tracker</h2>
+      </div>
+
+      <!-- Filters -->
+      <div class="filter-bar">
+        <input type="text" class="search-input" id="searchInput" placeholder="Search by name, phone, email, or code...">
+        <div class="filter-buttons">
+          <button class="filter-btn active" data-filter="all">All (<span id="countAll">0</span>)</button>
+          <button class="filter-btn" data-filter="available">Available (<span id="countAvail">0</span>)</button>
+          <button class="filter-btn" data-filter="used">Registered (<span id="countUsed">0</span>)</button>
+          <button class="filter-btn" data-filter="declined">Declined (<span id="countDec">0</span>)</button>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Invitation Link</th>
+              <th>Status</th>
+              <th>Assigned Recipient</th>
+              <th>Registered Guest Details</th>
+              <th>Pass #</th>
+              <th>Registered At</th>
+              <th style="text-align:right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            <tr>
+              <td colspan="7" class="empty-state">Loading invitation links...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <div id="toast">Link copied to clipboard!</div>
+
+  <script>
+    (() => {
+      let ADMIN_PIN = sessionStorage.getItem('cayc_admin_pin') || '';
+      let allInvites = [];
+      let currentFilter = 'all';
+
+      const authModal = document.getElementById('authModal');
+      const pinInput = document.getElementById('pinInput');
+      const pinError = document.getElementById('pinError');
+      const pinSubmit = document.getElementById('pinSubmit');
+      const tableBody = document.getElementById('tableBody');
+      const toast = document.getElementById('toast');
+
+      function showToast(msg) {
+        toast.textContent = msg;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2500);
+      }
+
+      // Check PIN
+      async function tryAuth(pin) {
+        try {
+          const res = await fetch('/api/admin/auth', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pin })
+          });
+          if (res.ok) {
+            ADMIN_PIN = pin;
+            sessionStorage.setItem('cayc_admin_pin', pin);
+            authModal.style.display = 'none';
+            loadData();
+          } else {
+            pinError.style.display = 'block';
+            pinInput.focus();
+          }
+        } catch (e) {
+          pinError.textContent = 'Server error. Please ensure backend is running.';
+          pinError.style.display = 'block';
+        }
+      }
+
+      pinSubmit.addEventListener('click', () => tryAuth(pinInput.value.trim()));
+      pinInput.addEventListener('keydown', e => { if (e.key === 'Enter') tryAuth(pinInput.value.trim()); });
+
+      if (ADMIN_PIN) {
+        tryAuth(ADMIN_PIN);
+      } else {
+        authModal.style.display = 'flex';
+        pinInput.focus();
+      }
+
+      document.getElementById('logoutBtn').addEventListener('click', () => {
+        sessionStorage.removeItem('cayc_admin_pin');
+        location.reload();
+      });
+
+      // Fetch Overview
+      async function loadData() {
+        if (!ADMIN_PIN) return;
+        try {
+          const res = await fetch('/api/admin/overview', {
+            headers: { 'x-admin-key': ADMIN_PIN }
+          });
+          if (res.status === 401) {
+            sessionStorage.removeItem('cayc_admin_pin');
+            authModal.style.display = 'flex';
+            return;
+          }
+          const data = await res.json();
+          if (data.ok) {
+            allInvites = data.invites || [];
+            updateStats(data.stats);
+            renderTable();
+          }
+        } catch (e) {
+          console.error(e);
+          showToast('Failed to fetch data');
+        }
+      }
+
+      function updateStats(s) {
+        document.getElementById('statTotal').textContent = s.total || 0;
+        document.getElementById('statAccepted').textContent = s.used || 0;
+        document.getElementById('statAvailable').textContent = s.available || 0;
+        document.getElementById('statDeclined').textContent = s.declined || 0;
+
+        document.getElementById('countAll').textContent = s.total || 0;
+        document.getElementById('countAvail').textContent = s.available || 0;
+        document.getElementById('countUsed').textContent = s.used || 0;
+        document.getElementById('countDec').textContent = s.declined || 0;
+      }
+
+      // Generate Link Form
+      const createForm = document.getElementById('createForm');
+      createForm.addEventListener('submit', async e => {
+        e.preventDefault();
+        const count = parseInt(document.getElementById('linkCount').value, 10) || 1;
+        const recipientName = document.getElementById('recipientName').value.trim();
+        const btn = document.getElementById('generateBtn');
+        btn.disabled = true;
+        btn.textContent = 'Generating...';
+
+        try {
+          const res = await fetch('/api/admin/create-link', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-admin-key': ADMIN_PIN
+            },
+            body: JSON.stringify({ count, recipientName })
+          });
+          const data = await res.json();
+          if (data.ok) {
+            showToast(`Created ${data.count} new invitation link(s)!`);
+            document.getElementById('recipientName').value = '';
+            loadData();
+          } else {
+            alert(data.error || 'Failed to create link');
+          }
+        } catch (e) {
+          alert('Error creating link');
+        } finally {
+          btn.disabled = false;
+          btn.textContent = '+ Create Link(s)';
+        }
+      });
+
+      // Filter & Search
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          currentFilter = btn.dataset.filter;
+          renderTable();
+        });
+      });
+
+      document.getElementById('searchInput').addEventListener('input', renderTable);
+      document.getElementById('refreshBtn').addEventListener('click', loadData);
+
+      // Render Table
+      function renderTable() {
+        const query = document.getElementById('searchInput').value.trim().toLowerCase();
+        const filtered = allInvites.filter(item => {
+          if (currentFilter !== 'all' && item.status !== currentFilter) return false;
+          if (!query) return true;
+          const searchStr = [
+            item.code,
+            item.recipientName,
+            item.guest?.name,
+            item.guest?.mobile,
+            item.guest?.email,
+            item.guest?.guestNo
+          ].filter(Boolean).join(' ').toLowerCase();
+          return searchStr.includes(query);
+        });
+
+        if (filtered.length === 0) {
+          tableBody.innerHTML = `<tr><td colspan="7" class="empty-state">No invitations found.</td></tr>`;
+          return;
+        }
+
+        const baseUrl = window.location.origin;
+
+        tableBody.innerHTML = filtered.map(item => {
+          const fullUrl = `${baseUrl}/?code=${item.code}`;
+          const isUsed = item.status === 'used';
+          const isDeclined = item.status === 'declined';
+          const badgeClass = isUsed ? 'used' : (isDeclined ? 'declined' : 'available');
+          const badgeText = isUsed ? 'Registered' : (isDeclined ? 'Declined' : 'Available');
+
+          let guestHtml = '<span style="color:#a89478">—</span>';
+          if (isUsed && item.guest) {
+            guestHtml = `
+              <div class="guest-info">
+                <div class="name">${escapeHtml(item.guest.name || 'Registered Guest')}</div>
+                <div class="sub">📱 ${escapeHtml(item.guest.mobile || '')} &bull; ✉️ ${escapeHtml(item.guest.email || '')}</div>
+              </div>
+            `;
+          }
+
+          const registeredDate = item.usedAt ? new Date(item.usedAt).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }) : '—';
+          const passNo = item.guest?.guestNo ? `<strong style="color:var(--brown-900)">GUEST ${item.guest.guestNo}</strong>` : '—';
+
+          return `
+            <tr>
+              <td>
+                <span class="code-pill">${item.code}</span>
+                <button class="copy-btn" style="margin-left:6px" onclick="copyLink('${fullUrl}', this)">📋 Copy Link</button>
+              </td>
+              <td><span class="badge ${badgeClass}">${badgeText}</span></td>
+              <td><strong>${escapeHtml(item.recipientName || '—')}</strong></td>
+              <td>${guestHtml}</td>
+              <td>${passNo}</td>
+              <td style="color:#7a6348">${registeredDate}</td>
+              <td style="text-align:right">
+                <a href="${fullUrl}" target="_blank" class="btn outline sm" style="text-decoration:none">Test Link</a>
+                ${isUsed ? `<button class="btn outline sm" style="margin-left:4px" onclick="resetLink('${item.code}')">Reset</button>` : ''}
+                <button class="btn outline sm" style="margin-left:4px;color:var(--danger)" onclick="deleteLink('${item.code}')">Delete</button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      function escapeHtml(str) {
+        return String(str || '').replace(/[&<>'"]/g, tag => ({
+          '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+        }[tag] || tag));
+      }
+
+      // Copy Link
+      window.copyLink = (url, btn) => {
+        navigator.clipboard.writeText(url).then(() => {
+          btn.textContent = '✓ Copied!';
+          btn.classList.add('copied');
+          showToast('Copied invitation link to clipboard!');
+          setTimeout(() => {
+            btn.textContent = '📋 Copy Link';
+            btn.classList.remove('copied');
+          }, 2000);
+        });
+      };
+
+      // Reset Link
+      window.resetLink = async code => {
+        if (!confirm(`Reset invitation ${code} back to Available? The existing guest registration will be cleared.`)) return;
+        try {
+          const res = await fetch('/api/admin/reset-link', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-admin-key': ADMIN_PIN },
+            body: JSON.stringify({ code })
+          });
+          const d = await res.json();
+          if (d.ok) {
+            showToast(`Reset ${code} to Available!`);
+            loadData();
+          }
+        } catch (e) {
+          alert('Failed to reset link');
+        }
+      };
+
+      // Delete Link
+      window.deleteLink = async code => {
+        if (!confirm(`Delete invitation link ${code}? This cannot be undone.`)) return;
+        try {
+          const res = await fetch('/api/admin/delete-link', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-admin-key': ADMIN_PIN },
+            body: JSON.stringify({ code })
+          });
+          const d = await res.json();
+          if (d.ok) {
+            showToast(`Deleted ${code}!`);
+            loadData();
+          }
+        } catch (e) {
+          alert('Failed to delete link');
+        }
+      };
+
+      // Export CSV
+      document.getElementById('exportBtn').addEventListener('click', () => {
+        const rows = [
+          ['Invitation Code', 'Status', 'Assigned Recipient', 'Guest Pass No', 'Guest Full Name', 'Mobile Number', 'Email', 'Registered At']
+        ];
+        allInvites.forEach(i => {
+          rows.push([
+            i.code,
+            i.status,
+            i.recipientName || '',
+            i.guest?.guestNo || '',
+            i.guest?.name || '',
+            i.guest?.mobile || '',
+            i.guest?.email || '',
+            i.usedAt ? new Date(i.usedAt).toISOString() : ''
+          ]);
+        });
+        const csvContent = 'data:text/csv;charset=utf-8,' + rows.map(e => e.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement('a');
+        link.setAttribute('href', encodedUri);
+        link.setAttribute('download', `goldilocks_attendees_${new Date().toISOString().slice(0,10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      });
+
+    })();
+  </script>
+</body>
+</html>

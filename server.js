@@ -5,7 +5,7 @@ const path = require('path');
 const dns = require('dns');
 require('dotenv').config();
 
-// Ensure DNS SRV records resolve cleanly on all networks/Windows
+// Ensure DNS SRV records resolve cleanly on Windows & various ISPs
 try {
   dns.setServers(['8.8.8.8', '1.1.1.1']);
 } catch {}
@@ -13,13 +13,14 @@ try {
 const app = express();
 const PORT = process.env.PORT || 3000;
 const MONGODB_URI = process.env.MONGODB_URI;
+const ADMIN_SECRET = process.env.ADMIN_SECRET || 'CAYC2026';
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve static frontend files
+// Serve static frontend files (from public build or root)
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname)));
 
@@ -58,14 +59,40 @@ async function connectDB() {
   }
 }
 
-// Initial connection for local development
+// Initial connection for local dev
 if (MONGODB_URI && !MONGODB_URI.includes('<username>')) {
   connectDB();
 }
 
-// RSVP Schema & Model (prevent re-compiling in serverless)
+// ---------------- Helper Utilities ----------------
+function generateCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // omit ambiguous 0, O, 1, I
+  let rand = '';
+  for (let i = 0; i < 6; i++) {
+    rand += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return `CAYC-${rand}`;
+}
+
+function normalizePhone(phone) {
+  if (!phone) return '';
+  const digits = String(phone).replace(/\D/g, '');
+  if (digits.startsWith('63')) return digits.slice(2);
+  if (digits.startsWith('0')) return digits.slice(1);
+  return digits;
+}
+
+function normalizeName(name) {
+  if (!name) return '';
+  return String(name).trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+// ---------------- Schemas & Models ----------------
+
+// 1. RSVP Model
 const rsvpSchema = new mongoose.Schema({
   guestNo: { type: String, required: true },
+  inviteCode: { type: String, uppercase: true, trim: true, index: true },
   first: { type: String, required: true, trim: true },
   last: { type: String, required: true, trim: true },
   name: { type: String, required: true, trim: true },
@@ -79,28 +106,196 @@ const rsvpSchema = new mongoose.Schema({
 
 const RSVP = mongoose.models.RSVP || mongoose.model('RSVP', rsvpSchema);
 
-let fallbackCounter = 0;
+// 2. Invitation Link Model
+const inviteSchema = new mongoose.Schema({
+  code: { type: String, required: true, unique: true, uppercase: true, trim: true, index: true },
+  recipientName: { type: String, default: '', trim: true },
+  status: { type: String, enum: ['available', 'used', 'declined'], default: 'available' },
+  usedAt: { type: Date },
+  guest: {
+    guestNo: String,
+    first: String,
+    last: String,
+    name: String,
+    email: String,
+    mobile: String,
+    social: [String],
+    address: String
+  },
+  createdAt: { type: Date, default: Date.now }
+});
 
-// API Router
+const Invite = mongoose.models.Invite || mongoose.model('Invite', inviteSchema);
+
+// In-memory fallback if Atlas is offline during initial local setup
+const memoryInvites = new Map();
+let fallbackGuestCount = 0;
+
+// Admin authentication middleware
+function requireAdmin(req, res, next) {
+  const key = req.headers['x-admin-key'] || req.query.key || req.body?.key;
+  if (!key || key !== ADMIN_SECRET) {
+    return res.status(401).json({ ok: false, error: 'Unauthorized: Invalid Admin PIN' });
+  }
+  next();
+}
+
+// ---------------- API Router ----------------
 const apiRouter = express.Router();
 
-// 1. Submit RSVP
+// 1. Verify Invitation Link by Code
+apiRouter.get('/invite/verify', async (req, res) => {
+  try {
+    const rawCode = req.query.code || req.query.invite;
+    if (!rawCode) {
+      return res.status(400).json({ ok: false, error: 'missing_code', message: 'No invitation code provided.' });
+    }
+
+    const code = String(rawCode).trim().toUpperCase();
+    await connectDB();
+
+    if (mongoose.connection.readyState === 1) {
+      const invite = await Invite.findOne({ code });
+      if (!invite) {
+        return res.status(404).json({ ok: false, error: 'not_found', message: 'Invitation link does not exist.' });
+      }
+
+      return res.json({
+        ok: true,
+        code: invite.code,
+        status: invite.status,
+        recipientName: invite.recipientName || '',
+        usedAt: invite.usedAt || null,
+        guestRegistered: invite.status === 'used'
+      });
+    } else {
+      // Memory fallback
+      const invite = memoryInvites.get(code);
+      if (!invite) {
+        return res.status(404).json({ ok: false, error: 'not_found', message: 'Invitation link does not exist.' });
+      }
+      return res.json({
+        ok: true,
+        code: invite.code,
+        status: invite.status,
+        recipientName: invite.recipientName || '',
+        usedAt: invite.usedAt || null,
+        guestRegistered: invite.status === 'used'
+      });
+    }
+  } catch (err) {
+    console.error('Verify invite error:', err);
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// 2. Claim / View Guest Pass for Already Used Invitation
+apiRouter.post('/invite/claim-pass', async (req, res) => {
+  try {
+    const { code: rawCode, fullName, mobile } = req.body;
+    if (!rawCode || !fullName || !mobile) {
+      return res.status(400).json({ ok: false, error: 'Please provide both your Full Name and Mobile Number.' });
+    }
+
+    const code = String(rawCode).trim().toUpperCase();
+    await connectDB();
+
+    let invite = null;
+    if (mongoose.connection.readyState === 1) {
+      invite = await Invite.findOne({ code });
+    } else {
+      invite = memoryInvites.get(code);
+    }
+
+    if (!invite) {
+      return res.status(404).json({ ok: false, error: 'Invitation not found.' });
+    }
+
+    if (invite.status !== 'used' || !invite.guest) {
+      return res.status(400).json({ ok: false, error: 'This invitation has not been registered yet.' });
+    }
+
+    // Check full name and mobile
+    const inputNameNorm = normalizeName(fullName);
+    const guestNameNorm = normalizeName(invite.guest.name || `${invite.guest.first} ${invite.guest.last}`);
+    const inputPhoneNorm = normalizePhone(mobile);
+    const guestPhoneNorm = normalizePhone(invite.guest.mobile);
+
+    const nameMatches = inputNameNorm === guestNameNorm ||
+      (guestNameNorm.includes(inputNameNorm) && inputNameNorm.length >= 4) ||
+      (inputNameNorm.includes(guestNameNorm) && guestNameNorm.length >= 4);
+
+    const phoneMatches = inputPhoneNorm === guestPhoneNorm ||
+      (inputPhoneNorm.length >= 7 && guestPhoneNorm.endsWith(inputPhoneNorm)) ||
+      (guestPhoneNorm.length >= 7 && inputPhoneNorm.endsWith(guestPhoneNorm));
+
+    if (!nameMatches || !phoneMatches) {
+      return res.status(401).json({
+        ok: false,
+        error: 'The entered Full Name or Mobile Number does not match the registered guest for this invitation.'
+      });
+    }
+
+    // Match confirmed: return guest pass details
+    return res.json({
+      ok: true,
+      pass: {
+        name: invite.guest.name || `${invite.guest.first} ${invite.guest.last}`,
+        first: invite.guest.first,
+        last: invite.guest.last,
+        no: invite.guest.guestNo,
+        code: invite.code,
+        email: invite.guest.email,
+        mobile: invite.guest.mobile
+      }
+    });
+  } catch (err) {
+    console.error('Claim pass error:', err);
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// 3. Submit RSVP (One-time registration per unique link)
 apiRouter.post('/rsvp', async (req, res) => {
   try {
-    const { first, last, email, mobile, social, address } = req.body;
+    const { first, last, email, mobile, social, address, code: rawCode } = req.body;
 
     if (!first || !last || !email || !mobile) {
       return res.status(400).json({ ok: false, error: 'Required fields missing' });
     }
 
     const fullName = `${first.trim()} ${last.trim()}`;
-    const db = await connectDB();
+    const code = rawCode ? String(rawCode).trim().toUpperCase() : null;
+    await connectDB();
 
-    if (db && mongoose.connection.readyState === 1) {
+    if (mongoose.connection.readyState === 1) {
+      let invite = null;
+      if (code) {
+        invite = await Invite.findOne({ code });
+        if (!invite) {
+          return res.status(404).json({ ok: false, error: 'invalid_code', message: 'Invitation link does not exist.' });
+        }
+        if (invite.status === 'used') {
+          return res.status(400).json({
+            ok: false,
+            error: 'already_used',
+            message: 'This invitation link has already been used and registered.'
+          });
+        }
+        if (invite.status === 'declined') {
+          return res.status(400).json({
+            ok: false,
+            error: 'declined',
+            message: 'This invitation was previously marked as declined.'
+          });
+        }
+      }
+
+      // Calculate sequential guest pass number
       const acceptedCount = await RSVP.countDocuments({ response: 'accepted' });
       const guestNoStr = String(acceptedCount + 1).padStart(3, '0');
 
-      const rsvpDoc = new RSVP({
+      const guestData = {
         guestNo: guestNoStr,
         first: first.trim(),
         last: last.trim(),
@@ -108,28 +303,58 @@ apiRouter.post('/rsvp', async (req, res) => {
         email: email.trim(),
         mobile: mobile.trim(),
         social: Array.isArray(social) ? social : [],
-        address: address ? address.trim() : '',
+        address: address ? address.trim() : ''
+      };
+
+      // Mark invite as used
+      if (invite) {
+        invite.status = 'used';
+        invite.usedAt = new Date();
+        invite.guest = guestData;
+        await invite.save();
+      }
+
+      // Save RSVP record
+      const rsvpDoc = new RSVP({
+        ...guestData,
+        inviteCode: code || 'DIRECT',
         response: 'accepted',
         createdAt: new Date()
       });
-
       await rsvpDoc.save();
-      console.log(`Saved RSVP to MongoDB Atlas: ${fullName} (GUEST ${guestNoStr})`);
+
+      console.log(`Saved RSVP to MongoDB Atlas: ${fullName} (GUEST ${guestNoStr}) [Invite: ${code || 'None'}]`);
 
       return res.json({
         ok: true,
         source: 'mongodb-atlas',
         no: guestNoStr,
-        guest: rsvpDoc
+        guest: guestData
       });
     } else {
-      fallbackCounter += 1;
-      const guestNoStr = String(fallbackCounter).padStart(3, '0');
+      // Local fallback
+      fallbackGuestCount += 1;
+      const guestNoStr = String(fallbackGuestCount).padStart(3, '0');
+      const guestData = {
+        guestNo: guestNoStr,
+        first, last, name: fullName, email, mobile, social, address
+      };
+
+      if (code && memoryInvites.has(code)) {
+        const inv = memoryInvites.get(code);
+        if (inv.status === 'used') {
+          return res.status(400).json({ ok: false, error: 'already_used', message: 'This invitation link has already been used.' });
+        }
+        inv.status = 'used';
+        inv.usedAt = new Date();
+        inv.guest = guestData;
+      }
+
       return res.json({
         ok: true,
         source: 'local-fallback',
         no: guestNoStr,
-        guest: { guestNo: guestNoStr, name: fullName, first, last, email, mobile, social }
+        guest: guestData
       });
     }
   } catch (err) {
@@ -138,13 +363,25 @@ apiRouter.post('/rsvp', async (req, res) => {
   }
 });
 
-// 2. Decline
+// 4. Decline RSVP
 apiRouter.post('/rsvp/decline', async (req, res) => {
   try {
-    const db = await connectDB();
-    if (db && mongoose.connection.readyState === 1) {
+    const { code: rawCode } = req.body;
+    const code = rawCode ? String(rawCode).trim().toUpperCase() : null;
+    await connectDB();
+
+    if (mongoose.connection.readyState === 1) {
+      if (code) {
+        const invite = await Invite.findOne({ code });
+        if (invite && invite.status === 'available') {
+          invite.status = 'declined';
+          invite.usedAt = new Date();
+          await invite.save();
+        }
+      }
       const declineDoc = new RSVP({
         guestNo: 'N/A',
+        inviteCode: code || 'DIRECT',
         first: 'Declined',
         last: 'Guest',
         name: 'Declined Guest',
@@ -161,11 +398,11 @@ apiRouter.post('/rsvp/decline', async (req, res) => {
   }
 });
 
-// 3. Guest list
+// 5. Public Guest list summary
 apiRouter.get('/rsvps', async (req, res) => {
   try {
-    const db = await connectDB();
-    if (db && mongoose.connection.readyState === 1) {
+    await connectDB();
+    if (mongoose.connection.readyState === 1) {
       const guests = await RSVP.find().sort({ createdAt: -1 });
       const acceptedCount = await RSVP.countDocuments({ response: 'accepted' });
       const declinedCount = await RSVP.countDocuments({ response: 'declined' });
@@ -180,7 +417,7 @@ apiRouter.get('/rsvps', async (req, res) => {
       return res.json({
         ok: true,
         database: 'Disconnected',
-        totalAccepted: fallbackCounter,
+        totalAccepted: fallbackGuestCount,
         guests: []
       });
     }
@@ -189,7 +426,7 @@ apiRouter.get('/rsvps', async (req, res) => {
   }
 });
 
-// 4. Health
+// 6. Health
 apiRouter.get('/health', async (req, res) => {
   await connectDB();
   const states = ['disconnected', 'connected', 'connecting', 'disconnecting'];
@@ -201,7 +438,130 @@ apiRouter.get('/health', async (req, res) => {
   });
 });
 
-// Mount router on both /api and root to guarantee matching in Vercel serverless rewrites
+// ---------------- Admin Management Endpoints ----------------
+
+// Verify Admin PIN / Password
+apiRouter.post('/admin/auth', (req, res) => {
+  const { pin } = req.body;
+  if (pin && pin === ADMIN_SECRET) {
+    return res.json({ ok: true });
+  }
+  return res.status(401).json({ ok: false, error: 'Invalid Admin PIN' });
+});
+
+// Get Admin Overview (Stats & all invitation links)
+apiRouter.get('/admin/overview', requireAdmin, async (req, res) => {
+  try {
+    await connectDB();
+    let invites = [];
+
+    if (mongoose.connection.readyState === 1) {
+      invites = await Invite.find().sort({ createdAt: -1 });
+    } else {
+      invites = Array.from(memoryInvites.values()).sort((a,b) => b.createdAt - a.createdAt);
+    }
+
+    const total = invites.length;
+    const available = invites.filter(i => i.status === 'available').length;
+    const used = invites.filter(i => i.status === 'used').length;
+    const declined = invites.filter(i => i.status === 'declined').length;
+
+    res.json({
+      ok: true,
+      stats: { total, available, used, declined },
+      invites
+    });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// Create Invitation Link(s)
+apiRouter.post('/admin/create-link', requireAdmin, async (req, res) => {
+  try {
+    const { count = 1, recipientName = '' } = req.body;
+    const numToCreate = Math.min(Math.max(parseInt(count, 10) || 1, 1), 50);
+    await connectDB();
+
+    const created = [];
+    for (let i = 0; i < numToCreate; i++) {
+      let code = generateCode();
+      if (mongoose.connection.readyState === 1) {
+        // ensure uniqueness
+        while (await Invite.findOne({ code })) {
+          code = generateCode();
+        }
+        const doc = new Invite({
+          code,
+          recipientName: numToCreate === 1 ? recipientName.trim() : '',
+          status: 'available',
+          createdAt: new Date()
+        });
+        await doc.save();
+        created.push(doc);
+      } else {
+        const item = {
+          code,
+          recipientName: numToCreate === 1 ? recipientName.trim() : '',
+          status: 'available',
+          createdAt: new Date()
+        };
+        memoryInvites.set(code, item);
+        created.push(item);
+      }
+    }
+
+    res.json({ ok: true, count: created.length, created });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// Delete an invitation link
+apiRouter.post('/admin/delete-link', requireAdmin, async (req, res) => {
+  try {
+    const { code } = req.body;
+    if (!code) return res.status(400).json({ ok: false, error: 'Missing code' });
+    await connectDB();
+
+    if (mongoose.connection.readyState === 1) {
+      await Invite.deleteOne({ code: code.toUpperCase() });
+    } else {
+      memoryInvites.delete(code.toUpperCase());
+    }
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// Reset an invitation link back to available
+apiRouter.post('/admin/reset-link', requireAdmin, async (req, res) => {
+  try {
+    const { code } = req.body;
+    if (!code) return res.status(400).json({ ok: false, error: 'Missing code' });
+    await connectDB();
+
+    if (mongoose.connection.readyState === 1) {
+      await Invite.updateOne(
+        { code: code.toUpperCase() },
+        { $set: { status: 'available' }, $unset: { usedAt: '', guest: '' } }
+      );
+    } else {
+      const inv = memoryInvites.get(code.toUpperCase());
+      if (inv) {
+        inv.status = 'available';
+        delete inv.usedAt;
+        delete inv.guest;
+      }
+    }
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// Mount router on both /api and root
 app.use('/api', apiRouter);
 app.use('/', apiRouter);
 
@@ -211,8 +571,8 @@ if (require.main === module) {
     console.log(`===============================================`);
     console.log(` Goldilocks Server running at http://localhost:${PORT}`);
     console.log(` Database: MongoDB Atlas`);
+    console.log(` Admin Dashboard: http://localhost:${PORT}/admin.html`);
     console.log(` Health check: http://localhost:${PORT}/api/health`);
-    console.log(` Guest list API: http://localhost:${PORT}/api/rsvps`);
     console.log(`===============================================`);
   });
 }

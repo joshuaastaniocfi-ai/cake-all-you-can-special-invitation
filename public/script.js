@@ -160,17 +160,24 @@
     el.addEventListener('input', () => setInvalid(el, !rules[id](el.value)));
   });
 
-  // Submit RSVP to backend (MongoDB Atlas) with offline/static fallback
+  // Track unique invitation code from URL or session
+  const urlParams = new URLSearchParams(window.location.search);
+  let inviteCode = urlParams.get('code') || urlParams.get('invite') || sessionStorage.getItem('cayc_invite_code') || '';
+  if (inviteCode) {
+    inviteCode = inviteCode.trim().toUpperCase();
+    sessionStorage.setItem('cayc_invite_code', inviteCode);
+  }
+
+  // Submit RSVP to backend (MongoDB Atlas) with unique link support & offline fallback
   async function submitRSVP(payload) {
     try {
       const res = await fetch('/api/rsvp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ ...payload, code: inviteCode })
       });
-      if (res.ok) {
-        return await res.json();
-      }
+      const data = await res.json();
+      return { ok: res.ok, status: res.status, ...data };
     } catch (err) {
       console.warn('API endpoint unavailable, falling back to local storage', err);
     }
@@ -201,6 +208,25 @@
 
     const serverRes = await submitRSVP(data);
 
+    if (serverRes && !serverRes.ok) {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Confirm & get my guest pass';
+      }
+      if (serverRes.error === 'already_used') {
+        alert('This invitation link has already been registered.');
+        show('alreadyUsed');
+        return;
+      } else if (serverRes.error === 'invalid_code') {
+        alert('Invitation link is invalid.');
+        show('invalidLink');
+        return;
+      } else {
+        alert(serverRes.message || 'Unable to register RSVP. Please try again.');
+        return;
+      }
+    }
+
     let num;
     if (serverRes && serverRes.no) {
       num = serverRes.no;
@@ -221,8 +247,77 @@
     $('#passNo').textContent = `GUEST ${num}`;
     $('#passRef').textContent = `GL · 2026 · ${num}`;
     const pass = $('.pass'); pass.style.animation = 'none'; void pass.offsetWidth; pass.style.animation = '';
+    const passBack = $('#pass .back');
+    if (passBack) passBack.dataset.go = 'form';
     show('pass');
   });
+
+  // Verify Name & Mobile Number for Already Used Links
+  const claimPassForm = $('#claimPassForm');
+  if (claimPassForm) {
+    claimPassForm.addEventListener('submit', async e => {
+      e.preventDefault();
+      const nameInput = $('#claimName');
+      const mobileInput = $('#claimMobile');
+      const errEl = $('#claimError');
+      const submitBtn = $('#claimSubmitBtn');
+
+      if (!nameInput.value.trim() || !mobileInput.value.trim()) {
+        errEl.textContent = 'Please enter both your full name and mobile number.';
+        errEl.style.display = 'block';
+        return;
+      }
+
+      errEl.style.display = 'none';
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Verifying Details...';
+
+      try {
+        const res = await fetch('/api/invite/claim-pass', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            code: inviteCode,
+            fullName: nameInput.value.trim(),
+            mobile: mobileInput.value.trim()
+          })
+        });
+        const data = await res.json();
+        if (data.ok && data.pass) {
+          const p = data.pass;
+          $('#passName').textContent = p.name;
+          const numStr = String(p.no || '001').padStart(3, '0');
+          $('#passNo').textContent = `GUEST ${numStr}`;
+          $('#passRef').textContent = `GL · 2026 · ${numStr}`;
+          const pass = $('.pass'); pass.style.animation = 'none'; void pass.offsetWidth; pass.style.animation = '';
+          const passBack = $('#pass .back');
+          if (passBack) passBack.dataset.go = 'alreadyUsed';
+          show('pass');
+        } else {
+          errEl.textContent = data.error || 'Name or mobile number does not match this invitation.';
+          errEl.style.display = 'block';
+        }
+      } catch (err) {
+        errEl.textContent = 'Verification error. Please try again.';
+        errEl.style.display = 'block';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Verify & View My Pass';
+      }
+    });
+  }
+
+  // Manual Code Entry Form
+  const enterCodeForm = $('#enterCodeForm');
+  if (enterCodeForm) {
+    enterCodeForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const val = $('#manualCode').value.trim();
+      if (val) {
+        window.location.search = `?code=${encodeURIComponent(val.toUpperCase())}`;
+      }
+    });
+  }
 
   /* ---------- every button, through one delegated handler ---------- */
   const actions = {
@@ -233,7 +328,7 @@
       fetch('/api/rsvp/decline', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ at: new Date().toISOString() })
+        body: JSON.stringify({ code: inviteCode, at: new Date().toISOString() })
       }).catch(() => {});
       store.set('gl-rsvp', { response: 'declined', at: new Date().toISOString() });
       show('declined');
@@ -271,16 +366,44 @@
   });
 
   /* ---------- start ---------- */
-  const startId = location.hash.slice(1);
-  const startEl = startId && document.getElementById(startId);
-  if (startEl && startEl.classList.contains('screen') && startId !== 'invite') {
-    // deep link (e.g. index.html#form) – skip the envelope
-    opened = true; envelope.hidden = true; html.classList.remove('locked');
-    show(startId);
-  } else {
+  async function initInvitation() {
+    const startId = location.hash.slice(1);
+    const startEl = startId && document.getElementById(startId);
+    if (startEl && startEl.classList.contains('screen') && startId !== 'invite') {
+      // deep link (e.g. index.html#form) – skip the envelope
+      opened = true; envelope.hidden = true; html.classList.remove('locked');
+      show(startId);
+      return;
+    }
+
+    if (inviteCode) {
+      try {
+        const res = await fetch(`/api/invite/verify?code=${encodeURIComponent(inviteCode)}`);
+        const data = await res.json();
+        if (data.ok) {
+          if (data.status === 'used') {
+            opened = true; envelope.hidden = true; html.classList.remove('locked');
+            show('alreadyUsed');
+            return;
+          } else if (data.status === 'declined') {
+            opened = true; envelope.hidden = true; html.classList.remove('locked');
+            show('declined');
+            return;
+          }
+        } else if (data.error === 'not_found') {
+          opened = true; envelope.hidden = true; html.classList.remove('locked');
+          show('invalidLink');
+          return;
+        }
+      } catch (e) {
+        console.warn('Backend verification offline', e);
+      }
+    }
+
     show('invite');
     document.body.dataset.bg = 'gold';
     setArrowVisible(false);
     setRsvpVisible(false);
   }
+  initInvitation();
 })();
