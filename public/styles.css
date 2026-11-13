@@ -12,7 +12,133 @@ html.locked,html.locked body{overflow:hidden;height:100%}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 img{display:block}
 
-.stage{position:relative;width:402px;margin:0 auto;zoom:var(--s,1)}
+/* ---------- Ambient backdrop & blurry glass side effect ---------- */
+.ambient-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.ambient-art {
+  position: absolute;
+  inset: -60px;
+  background-image: url('assets/bg.png');
+  background-position: center top;
+  background-size: cover;
+  background-repeat: no-repeat;
+  filter: blur(48px) saturate(180%) brightness(1.02);
+  transform: scale(1.12);
+  transition: opacity 0.5s ease, filter 0.5s ease;
+  will-change: transform;
+}
+.ambient-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(85px);
+  pointer-events: none;
+  opacity: 0.52;
+  transition: opacity 0.5s ease;
+}
+.ambient-glow-tl {
+  top: -60px;
+  left: 6%;
+  width: 440px;
+  height: 440px;
+  background: radial-gradient(circle, #fde047 0%, #f59e0b 55%, transparent 80%);
+}
+.ambient-glow-tr {
+  top: 80px;
+  right: 6%;
+  width: 480px;
+  height: 480px;
+  background: radial-gradient(circle, #fda4af 0%, #fb923c 50%, #fcd34d 75%, transparent 90%);
+}
+.ambient-glow-bl {
+  bottom: 100px;
+  left: 4%;
+  width: 460px;
+  height: 460px;
+  background: radial-gradient(circle, #bbf7d0 0%, #a3e635 35%, #fde047 70%, transparent 90%);
+}
+.ambient-glow-br {
+  bottom: 80px;
+  right: 5%;
+  width: 490px;
+  height: 490px;
+  background: radial-gradient(circle, #e9d5ff 0%, #c084fc 40%, #fb923c 75%, transparent 90%);
+}
+body[data-bg="gold"] .ambient-glow {
+  opacity: 0.15;
+}
+
+.ambient-overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 30%, rgba(255, 253, 245, 0.25) 0%, rgba(255, 246, 220, 0.55) 100%);
+  transition: background 0.5s ease;
+}
+body[data-bg="gold"] .ambient-art {
+  filter: blur(40px) saturate(190%) brightness(1.0);
+}
+body[data-bg="gold"] .ambient-overlay {
+  background: radial-gradient(circle at 50% 50%, rgba(255, 235, 130, 0.4) 0%, rgba(244, 199, 47, 0.6) 100%);
+}
+
+/* Glassmorphic frosted side wings on wider displays */
+.ambient-glass {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  z-index: 55;
+  pointer-events: none;
+  display: none;
+}
+
+@media (min-width: 440px) {
+  .ambient-glass {
+    display: block;
+    width: calc(50vw - 200px);
+    backdrop-filter: blur(32px) saturate(200%);
+    -webkit-backdrop-filter: blur(32px) saturate(200%);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.48) 0%, rgba(255, 250, 238, 0.3) 50%, rgba(255, 255, 255, 0.44) 100%);
+    transition: background 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+  }
+  .ambient-glass.left {
+    left: 0;
+    border-right: 1.5px solid rgba(255, 255, 255, 0.85);
+    box-shadow: 
+      inset -12px 0 28px rgba(255, 255, 255, 0.65),
+      inset 0 12px 28px rgba(255, 255, 255, 0.4),
+      inset -1px 0 0 rgba(140, 90, 20, 0.15),
+      inset 0 0 60px rgba(255, 240, 200, 0.3);
+  }
+  .ambient-glass.right {
+    right: 0;
+    border-left: 1.5px solid rgba(255, 255, 255, 0.85);
+    box-shadow: 
+      inset 12px 0 28px rgba(255, 255, 255, 0.65),
+      inset 0 12px 28px rgba(255, 255, 255, 0.4),
+      inset 1px 0 0 rgba(140, 90, 20, 0.15),
+      inset 0 0 60px rgba(255, 240, 200, 0.3);
+  }
+
+  body[data-bg="gold"] .ambient-glass {
+    backdrop-filter: blur(28px) saturate(180%);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    background: linear-gradient(180deg, rgba(255, 245, 180, 0.4) 0%, rgba(244, 199, 47, 0.25) 50%, rgba(255, 235, 140, 0.35) 100%);
+    border-color: rgba(255, 255, 255, 0.75);
+    box-shadow: 
+      inset -12px 0 30px rgba(255, 255, 255, 0.5),
+      inset 0 0 60px rgba(255, 220, 100, 0.35);
+  }
+
+  .stage {
+    box-shadow: 0 0 50px rgba(60, 25, 0, 0.18), 0 0 120px rgba(60, 25, 0, 0.1);
+  }
+}
+
+.stage{position:relative;width:402px;margin:0 auto;zoom:var(--s,1);z-index:2}
 .screen{position:relative;width:402px;overflow:hidden;background:#fff}
 .screen[hidden]{display:none}
 .abs{position:absolute}
@@ -71,7 +197,7 @@ img{display:block}
 /* ---------- 1. envelope ---------- */
 .envelope{position:fixed;inset:0;z-index:50;overflow:hidden;touch-action:manipulation;cursor:pointer}
 .envelope[hidden]{display:none}
-.env-backdrop{position:fixed;inset:0;background:var(--gold);z-index:0;pointer-events:none}
+.env-backdrop{position:fixed;inset:0;background:radial-gradient(circle at 50% 50%, #ffe066 0%, #f4c72f 50%, #dfa010 100%);z-index:0;pointer-events:none}
 .env-scene{position:absolute;left:50%;top:50%;width:402px;height:874px;margin:-437px 0 0 -201px;transform:scale(var(--k,1));z-index:1;pointer-events:none}
 
 .env-top{position:absolute;inset:0;z-index:2;will-change:transform;pointer-events:auto}
@@ -103,7 +229,7 @@ img{display:block}
   transform:translateX(-50%);
   width:28px;
   height:28px;
-  z-index:20;
+  z-index:65;
   cursor:pointer;
   background:none;
   border:none;
@@ -152,7 +278,7 @@ img{display:block}
   border:1px solid rgba(255,235,195,.45);
   border-radius:14px;
   box-shadow:0 8px 26px rgba(45,18,4,.3), inset 0 1px 1.5px rgba(255,255,255,.5), inset 0 -1px 1px rgba(0,0,0,.2);
-  z-index:30;
+  z-index:70;
   opacity:1;
   visibility:visible;
   transition:opacity .3s ease, transform .2s ease, visibility .3s, background .2s, box-shadow .2s;
