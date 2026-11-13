@@ -152,10 +152,6 @@ const inviteSchema = new mongoose.Schema({
 
 const Invite = mongoose.models.Invite || mongoose.model('Invite', inviteSchema);
 
-// In-memory fallback if Atlas is offline during initial local setup
-const memoryInvites = new Map();
-let fallbackGuestCount = 0;
-
 // Admin authentication middleware
 function requireAdmin(req, res, next) {
   const key = req.headers['x-admin-key'] || req.query.key || req.body?.key;
@@ -451,25 +447,16 @@ apiRouter.post('/rsvp/decline', async (req, res) => {
 apiRouter.get('/rsvps', async (req, res) => {
   try {
     await connectDB();
-    if (mongoose.connection.readyState === 1) {
-      const guests = await RSVP.find().sort({ createdAt: -1 });
-      const acceptedCount = await RSVP.countDocuments({ response: 'accepted' });
-      const declinedCount = await RSVP.countDocuments({ response: 'declined' });
-      return res.json({
-        ok: true,
-        database: 'MongoDB Atlas',
-        totalAccepted: acceptedCount,
-        totalDeclined: declinedCount,
-        guests
-      });
-    } else {
-      return res.json({
-        ok: true,
-        database: 'Disconnected',
-        totalAccepted: fallbackGuestCount,
-        guests: []
-      });
-    }
+    const guests = await RSVP.find().sort({ createdAt: -1 });
+    const acceptedCount = await RSVP.countDocuments({ response: 'accepted' });
+    const declinedCount = await RSVP.countDocuments({ response: 'declined' });
+    return res.json({
+      ok: true,
+      database: 'MongoDB Atlas',
+      totalAccepted: acceptedCount,
+      totalDeclined: declinedCount,
+      guests
+    });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
   }
@@ -502,14 +489,7 @@ apiRouter.post('/admin/auth', (req, res) => {
 apiRouter.get('/admin/overview', requireAdmin, async (req, res) => {
   try {
     await connectDB();
-    let invites = [];
-
-    if (mongoose.connection.readyState === 1) {
-      invites = await Invite.find().sort({ createdAt: -1 });
-    } else {
-      invites = Array.from(memoryInvites.values()).sort((a,b) => b.createdAt - a.createdAt);
-    }
-
+    const invites = await Invite.find().sort({ createdAt: -1 });
     const total = invites.length;
     const available = invites.filter(i => i.status === 'available').length;
     const used = invites.filter(i => i.status === 'used').length;
@@ -535,29 +515,17 @@ apiRouter.post('/admin/create-link', requireAdmin, async (req, res) => {
     const created = [];
     for (let i = 0; i < numToCreate; i++) {
       let code = generateCode();
-      if (mongoose.connection.readyState === 1) {
-        // ensure uniqueness
-        while (await Invite.findOne({ code })) {
-          code = generateCode();
-        }
-        const doc = new Invite({
-          code,
-          recipientName: numToCreate === 1 ? recipientName.trim() : '',
-          status: 'available',
-          createdAt: new Date()
-        });
-        await doc.save();
-        created.push(doc);
-      } else {
-        const item = {
-          code,
-          recipientName: numToCreate === 1 ? recipientName.trim() : '',
-          status: 'available',
-          createdAt: new Date()
-        };
-        memoryInvites.set(code, item);
-        created.push(item);
+      while (await Invite.findOne({ code })) {
+        code = generateCode();
       }
+      const doc = new Invite({
+        code,
+        recipientName: numToCreate === 1 ? recipientName.trim() : '',
+        status: 'available',
+        createdAt: new Date()
+      });
+      await doc.save();
+      created.push(doc);
     }
 
     res.json({ ok: true, count: created.length, created });
@@ -574,12 +542,8 @@ apiRouter.post('/admin/delete-link', requireAdmin, async (req, res) => {
     await connectDB();
 
     const normalizedCode = code.toUpperCase();
-    if (mongoose.connection.readyState === 1) {
-      await Invite.deleteOne({ code: normalizedCode });
-      await RSVP.deleteMany({ inviteCode: normalizedCode });
-    } else {
-      memoryInvites.delete(normalizedCode);
-    }
+    await Invite.deleteOne({ code: normalizedCode });
+    await RSVP.deleteMany({ inviteCode: normalizedCode });
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
@@ -594,20 +558,11 @@ apiRouter.post('/admin/reset-link', requireAdmin, async (req, res) => {
     await connectDB();
 
     const normalizedCode = code.toUpperCase();
-    if (mongoose.connection.readyState === 1) {
-      await Invite.updateOne(
-        { code: normalizedCode },
-        { $set: { status: 'available' }, $unset: { usedAt: '', guest: '' } }
-      );
-      await RSVP.deleteMany({ inviteCode: normalizedCode });
-    } else {
-      const inv = memoryInvites.get(normalizedCode);
-      if (inv) {
-        inv.status = 'available';
-        delete inv.usedAt;
-        delete inv.guest;
-      }
-    }
+    await Invite.updateOne(
+      { code: normalizedCode },
+      { $set: { status: 'available' }, $unset: { usedAt: '', guest: '' } }
+    );
+    await RSVP.deleteMany({ inviteCode: normalizedCode });
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
