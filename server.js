@@ -5,14 +5,16 @@ const path = require('path');
 const dns = require('dns');
 require('dotenv').config();
 
-// Ensure DNS SRV records resolve cleanly on Windows & various ISPs
-try {
-  dns.setServers(['8.8.8.8', '1.1.1.1']);
-} catch {}
+// Ensure DNS SRV records resolve cleanly on Windows
+if (process.platform === 'win32') {
+  try {
+    dns.setServers(['8.8.8.8', '1.1.1.1']);
+  } catch {}
+}
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const MONGODB_URI = process.env.MONGODB_URI;
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://CAYCSpecialInvitation:CAYCSpecialInvitation@cluster0.dlubize.mongodb.net/goldilocks_db?retryWrites=true&w=majority';
 const ADMIN_SECRET = process.env.ADMIN_SECRET || 'CAYC2026';
 
 // Middleware
@@ -43,6 +45,7 @@ async function connectDB() {
   if (!cached.promise) {
     cached.promise = mongoose.connect(MONGODB_URI, {
       bufferCommands: false,
+      serverSelectionTimeoutMS: 8000,
     }).then(m => {
       console.log('✅ Connected to MongoDB Atlas successfully!');
       return m;
@@ -266,29 +269,35 @@ apiRouter.post('/rsvp', async (req, res) => {
 
     const fullName = `${first.trim()} ${last.trim()}`;
     const code = rawCode ? String(rawCode).trim().toUpperCase() : null;
+
+    if (!code) {
+      return res.status(400).json({
+        ok: false,
+        error: 'missing_code',
+        message: 'A valid personal invitation link is required to RSVP for this event.'
+      });
+    }
+
     await connectDB();
 
     if (mongoose.connection.readyState === 1) {
-      let invite = null;
-      if (code) {
-        invite = await Invite.findOne({ code });
-        if (!invite) {
-          return res.status(404).json({ ok: false, error: 'invalid_code', message: 'Invitation link does not exist.' });
-        }
-        if (invite.status === 'used') {
-          return res.status(400).json({
-            ok: false,
-            error: 'already_used',
-            message: 'This invitation link has already been used and registered.'
-          });
-        }
-        if (invite.status === 'declined') {
-          return res.status(400).json({
-            ok: false,
-            error: 'declined',
-            message: 'This invitation was previously marked as declined.'
-          });
-        }
+      const invite = await Invite.findOne({ code });
+      if (!invite) {
+        return res.status(404).json({ ok: false, error: 'invalid_code', message: 'Invitation link does not exist.' });
+      }
+      if (invite.status === 'used') {
+        return res.status(400).json({
+          ok: false,
+          error: 'already_used',
+          message: 'This invitation link has already been used and registered.'
+        });
+      }
+      if (invite.status === 'declined') {
+        return res.status(400).json({
+          ok: false,
+          error: 'declined',
+          message: 'This invitation was previously marked as declined.'
+        });
       }
 
       // Calculate sequential guest pass number

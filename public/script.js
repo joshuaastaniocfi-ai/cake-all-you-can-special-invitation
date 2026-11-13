@@ -217,14 +217,23 @@
         alert('This invitation link has already been registered.');
         show('alreadyUsed');
         return;
-      } else if (serverRes.error === 'invalid_code') {
-        alert('Invitation link is invalid.');
+      } else if (serverRes.error === 'invalid_code' || serverRes.error === 'missing_code') {
+        alert(serverRes.message || 'A valid personal invitation link is required.');
         show('invalidLink');
         return;
       } else {
         alert(serverRes.message || 'Unable to register RSVP. Please try again.');
         return;
       }
+    }
+
+    if (!serverRes) {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Confirm & get my guest pass';
+      }
+      alert('Unable to reach server. Please check your internet connection and try again.');
+      return;
     }
 
     let num;
@@ -243,6 +252,8 @@
       submitBtn.textContent = 'Confirm & get my guest pass';
     }
 
+    const badge = $('#passBadge'); if (badge) badge.innerHTML = '✓&nbsp; REGISTRATION COMPLETE';
+    const headline = $('#passHeadline'); if (headline) headline.innerHTML = 'You’re on the<br>guest list!';
     $('#passName').textContent = `${data.first.trim()} ${data.last.trim()}`;
     $('#passNo').textContent = `GUEST ${num}`;
     $('#passRef').textContent = `GL · 2026 · ${num}`;
@@ -285,6 +296,8 @@
         const data = await res.json();
         if (data.ok && data.pass) {
           const p = data.pass;
+          const badge = $('#passBadge'); if (badge) badge.innerHTML = '✓&nbsp; VERIFIED GUEST PASS';
+          const headline = $('#passHeadline'); if (headline) headline.innerHTML = 'Your Special<br>Guest Pass';
           $('#passName').textContent = p.name;
           const numStr = String(p.no || '001').padStart(3, '0');
           $('#passNo').textContent = `GUEST ${numStr}`;
@@ -302,7 +315,7 @@
         errEl.style.display = 'block';
       } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = 'Verify & View My Pass';
+        submitBtn.textContent = 'View Existing Guest Pass';
       }
     });
   }
@@ -322,8 +335,20 @@
   /* ---------- every button, through one delegated handler ---------- */
   const actions = {
     open: () => openEnvelope(),
-    respond: () => show('confirm'),
-    accept: () => show('form'),
+    respond: () => {
+      if (!inviteCode) {
+        show('invalidLink');
+        return;
+      }
+      show('confirm');
+    },
+    accept: () => {
+      if (!inviteCode) {
+        show('invalidLink');
+        return;
+      }
+      show('form');
+    },
     decline: () => {
       fetch('/api/rsvp/decline', {
         method: 'POST',
@@ -367,15 +392,6 @@
 
   /* ---------- start ---------- */
   async function initInvitation() {
-    const startId = location.hash.slice(1);
-    const startEl = startId && document.getElementById(startId);
-    if (startEl && startEl.classList.contains('screen') && startId !== 'invite') {
-      // deep link (e.g. index.html#form) – skip the envelope
-      opened = true; envelope.hidden = true; html.classList.remove('locked');
-      show(startId);
-      return;
-    }
-
     if (inviteCode) {
       try {
         const res = await fetch(`/api/invite/verify?code=${encodeURIComponent(inviteCode)}`);
@@ -390,7 +406,7 @@
             show('declined');
             return;
           }
-        } else if (data.error === 'not_found') {
+        } else if (data.error === 'not_found' || res.status === 404) {
           opened = true; envelope.hidden = true; html.classList.remove('locked');
           show('invalidLink');
           return;
@@ -398,6 +414,20 @@
       } catch (e) {
         console.warn('Backend verification offline', e);
       }
+    }
+
+    const startId = location.hash.slice(1);
+    const startEl = startId && document.getElementById(startId);
+    if (startEl && startEl.classList.contains('screen') && startId !== 'invite') {
+      if ((startId === 'form' || startId === 'confirm') && !inviteCode) {
+        opened = true; envelope.hidden = true; html.classList.remove('locked');
+        show('invalidLink');
+        return;
+      }
+      // deep link – skip the envelope
+      opened = true; envelope.hidden = true; html.classList.remove('locked');
+      show(startId);
+      return;
     }
 
     show('invite');
