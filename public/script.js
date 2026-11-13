@@ -194,26 +194,49 @@
     el.addEventListener('input', () => setInvalid(el, !rules[id](el.value)));
   });
 
-  // Track unique invitation code from URL or session
-  const urlParams = new URLSearchParams(window.location.search);
-  let inviteCode = urlParams.get('code') || urlParams.get('invite') || sessionStorage.getItem('cayc_invite_code') || '';
-  if (inviteCode) {
-    inviteCode = inviteCode.trim().toUpperCase();
-    sessionStorage.setItem('cayc_invite_code', inviteCode);
+  // Track unique invitation code from URL or session/local storage
+  function getActiveInviteCode() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const fromUrl = urlParams.get('code') || urlParams.get('invite');
+    const fromSession = sessionStorage.getItem('cayc_invite_code');
+    const fromLocal = localStorage.getItem('cayc_invite_code');
+    const code = (fromUrl || fromSession || fromLocal || inviteCode || '').trim().toUpperCase();
+    if (code) {
+      inviteCode = code;
+      sessionStorage.setItem('cayc_invite_code', code);
+      localStorage.setItem('cayc_invite_code', code);
+      const hiddenInput = $('#formInviteCode');
+      if (hiddenInput) hiddenInput.value = code;
+    }
+    return code;
   }
 
-  // Submit RSVP to backend (MongoDB Atlas) with unique link support & offline fallback
+  let inviteCode = getActiveInviteCode();
+
+  // Submit RSVP to backend (MongoDB Atlas) with unique link support & automatic retry
   async function submitRSVP(payload) {
+    const codeToSend = getActiveInviteCode();
     try {
       const res = await fetch('/api/rsvp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...payload, code: inviteCode })
+        body: JSON.stringify({ ...payload, code: codeToSend })
       });
       const data = await res.json();
+      if (!res.ok && (data.error === 'service_unavailable' || res.status === 503)) {
+        // Cold start auto-retry
+        await new Promise(r => setTimeout(r, 1000));
+        const retryRes = await fetch('/api/rsvp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...payload, code: codeToSend })
+        });
+        const retryData = await retryRes.json();
+        return { ok: retryRes.ok, status: retryRes.status, ...retryData };
+      }
       return { ok: res.ok, status: res.status, ...data };
     } catch (err) {
-      console.warn('API endpoint unavailable, falling back to local storage', err);
+      console.warn('API endpoint unavailable', err);
     }
     return null;
   }
@@ -229,6 +252,12 @@
     $('#consentWrap').classList.toggle('invalid', !consent.checked);
     if (!consent.checked) ok = false;
     if (!ok) { $('.field.invalid input, .field.invalid textarea', form)?.focus(); return; }
+
+    const activeCode = getActiveInviteCode();
+    if (!activeCode || !isLinkValid) {
+      showMsgBox(invalidLinkReason);
+      return;
+    }
 
     const submitBtn = $('.submit', form);
     if (submitBtn) {
@@ -249,11 +278,15 @@
       }
       if (serverRes.error === 'already_used') {
         isInviteUsed = true;
-        alert('This invitation link has already been registered and cannot be reused.');
+        showMsgBox('This invitation link has already been registered and cannot be reused.', 'Notice');
         show('alreadyUsed');
         return;
+      } else if (serverRes.error === 'invalid_link') {
+        isLinkValid = false;
+        showMsgBox(serverRes.message || 'This invitation link is not valid.', 'Notice');
+        return;
       } else {
-        alert(serverRes.message || 'Unable to register RSVP. Please try again.');
+        showMsgBox(serverRes.message || 'Unable to register RSVP. Please try again.', 'Notice');
         return;
       }
     }
@@ -263,7 +296,7 @@
         submitBtn.disabled = false;
         submitBtn.textContent = 'Confirm & get my guest pass';
       }
-      alert('Unable to reach server. Please check your internet connection and try again.');
+      showMsgBox('Unable to reach server. Please check your internet connection and try again.', 'Notice');
       return;
     }
 
@@ -438,7 +471,8 @@
 
   /* ---------- start ---------- */
   async function initInvitation() {
-    if (!inviteCode) {
+    const activeCode = getActiveInviteCode();
+    if (!activeCode) {
       isLinkValid = false;
       invalidLinkReason = 'This link is not valid. Access to this celebration requires an official personal invitation link.';
       showMsgBox(invalidLinkReason);
@@ -450,8 +484,15 @@
     }
 
     try {
-      const res = await fetch(`/api/invite/verify?code=${encodeURIComponent(inviteCode)}`);
-      const data = await res.json();
+      let res = await fetch(`/api/invite/verify?code=${encodeURIComponent(activeCode)}`);
+      let data = await res.json();
+      if (res.status === 503 || data.error === 'db_connecting') {
+        // Cold start retry
+        await new Promise(r => setTimeout(r, 1000));
+        res = await fetch(`/api/invite/verify?code=${encodeURIComponent(activeCode)}`);
+        data = await res.json();
+      }
+
       if (data.ok) {
         isLinkValid = true;
         if (data.status === 'used') {

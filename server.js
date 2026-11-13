@@ -33,8 +33,8 @@ if (!cached) {
 }
 
 async function connectDB() {
-  if (cached.conn && mongoose.connection.readyState === 1) {
-    return cached.conn;
+  if (mongoose.connection.readyState === 1) {
+    return mongoose.connection;
   }
 
   if (!MONGODB_URI || MONGODB_URI.includes('<username>') || MONGODB_URI.includes('<password>')) {
@@ -42,19 +42,29 @@ async function connectDB() {
     return null;
   }
 
-  if (!cached.promise) {
+  // Reset cached promise if disconnected or failed
+  if (!cached.promise || mongoose.connection.readyState === 0 || mongoose.connection.readyState === 3) {
     cached.promise = mongoose.connect(MONGODB_URI, {
       bufferCommands: false,
-      serverSelectionTimeoutMS: 8000,
+      serverSelectionTimeoutMS: 10000,
     }).then(m => {
       console.log('✅ Connected to MongoDB Atlas successfully!');
       return m;
+    }).catch(err => {
+      cached.promise = null;
+      console.error('❌ MongoDB Atlas connection error:', err.message);
+      throw err;
     });
   }
 
   try {
-    cached.conn = await cached.promise;
-    return cached.conn;
+    await cached.promise;
+    let attempts = 0;
+    while (mongoose.connection.readyState !== 1 && attempts < 25) {
+      await new Promise(r => setTimeout(r, 100));
+      attempts++;
+    }
+    return mongoose.connection;
   } catch (err) {
     cached.promise = null;
     console.error('❌ MongoDB Atlas connection error:', err.message);
@@ -184,19 +194,7 @@ apiRouter.get('/invite/verify', async (req, res) => {
         guestRegistered: invite.status === 'used'
       });
     } else {
-      // Memory fallback
-      const invite = memoryInvites.get(code);
-      if (!invite) {
-        return res.status(404).json({ ok: false, error: 'not_found', message: 'Invitation link does not exist.' });
-      }
-      return res.json({
-        ok: true,
-        code: invite.code,
-        status: invite.status,
-        recipientName: invite.recipientName || '',
-        usedAt: invite.usedAt || null,
-        guestRegistered: invite.status === 'used'
-      });
+      return res.status(503).json({ ok: false, error: 'db_connecting', message: 'Database connection in progress.' });
     }
   } catch (err) {
     console.error('Verify invite error:', err);
@@ -393,45 +391,10 @@ apiRouter.post('/rsvp', async (req, res) => {
         guest: guestData
       });
     } else {
-      // Local fallback
-      if (!code || !memoryInvites.has(code)) {
-        return res.status(400).json({
-          ok: false,
-          error: 'invalid_link',
-          message: 'This link is not valid. An official personal invitation link is required to RSVP.'
-        });
-      }
-      const inv = memoryInvites.get(code);
-      if (inv.status === 'used') {
-        return res.status(400).json({
-          ok: false,
-          error: 'already_used',
-          message: 'This invitation link has already been used. Each unique link can only be used once.'
-        });
-      }
-
-      fallbackGuestCount += 1;
-      const guestNoStr = String(fallbackGuestCount).padStart(3, '0');
-      const guestData = {
-        guestNo: guestNoStr,
-        first: first.trim(),
-        last: last.trim(),
-        name: fullName,
-        email: email.trim(),
-        mobile: mobile.trim(),
-        social: Array.isArray(social) ? social : [],
-        address: address ? address.trim() : ''
-      };
-
-      inv.status = 'used';
-      inv.usedAt = new Date();
-      inv.guest = guestData;
-
-      return res.json({
-        ok: true,
-        source: 'local-fallback',
-        no: guestNoStr,
-        guest: guestData
+      return res.status(503).json({
+        ok: false,
+        error: 'service_unavailable',
+        message: 'Guest list server connection in progress. Please click submit again in 2 seconds.'
       });
     }
   } catch (err) {
