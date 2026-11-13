@@ -282,41 +282,35 @@ apiRouter.post('/rsvp', async (req, res) => {
     const fullName = `${first.trim()} ${last.trim()}`;
     const code = rawCode ? String(rawCode).trim().toUpperCase() : null;
 
-    if (!code) {
-      return res.status(400).json({
-        ok: false,
-        error: 'missing_code',
-        message: 'A valid personal invitation link is required to RSVP for this event.'
-      });
-    }
-
     await connectDB();
 
     if (mongoose.connection.readyState === 1) {
-      const invite = await Invite.findOne({ code });
-      if (!invite) {
-        return res.status(404).json({ ok: false, error: 'invalid_code', message: 'Invitation link does not exist.' });
-      }
-      if (invite.status === 'used') {
-        return res.status(400).json({
-          ok: false,
-          error: 'already_used',
-          message: 'This invitation link has already been used and registered. Each unique link can only be used once.'
-        });
-      }
+      let invite = null;
+      if (code) {
+        invite = await Invite.findOne({ code });
+        if (invite) {
+          if (invite.status === 'used') {
+            return res.status(400).json({
+              ok: false,
+              error: 'already_used',
+              message: 'This invitation link has already been used and registered. Each unique link can only be used once.'
+            });
+          }
 
-      // Strict check: verify no accepted RSVP already exists for this unique code
-      const existingRsvp = await RSVP.findOne({ inviteCode: code, response: 'accepted' });
-      if (existingRsvp) {
-        if (invite.status !== 'used') {
-          invite.status = 'used';
-          await invite.save();
+          // Strict check: verify no accepted RSVP already exists for this unique code
+          const existingRsvp = await RSVP.findOne({ inviteCode: code, response: 'accepted' });
+          if (existingRsvp) {
+            if (invite.status !== 'used') {
+              invite.status = 'used';
+              await invite.save();
+            }
+            return res.status(400).json({
+              ok: false,
+              error: 'already_used',
+              message: 'This invitation link has already been registered. Each unique link can only be used once.'
+            });
+          }
         }
-        return res.status(400).json({
-          ok: false,
-          error: 'already_used',
-          message: 'This invitation link has already been registered. Each unique link can only be used once.'
-        });
       }
 
       // Calculate sequential guest pass number
@@ -336,34 +330,36 @@ apiRouter.post('/rsvp', async (req, res) => {
 
       // Atomic document-level claim: only update if status is still available or declined!
       // This prevents race conditions from allowing two simultaneous registrants on the same link.
-      const updatedInvite = await Invite.findOneAndUpdate(
-        { code, status: { $in: ['available', 'declined'] } },
-        {
-          $set: {
-            status: 'used',
-            usedAt: new Date(),
-            guest: guestData
-          }
-        },
-        { new: true }
-      );
+      if (code && invite) {
+        const updatedInvite = await Invite.findOneAndUpdate(
+          { code, status: { $in: ['available', 'declined'] } },
+          {
+            $set: {
+              status: 'used',
+              usedAt: new Date(),
+              guest: guestData
+            }
+          },
+          { new: true }
+        );
 
-      if (!updatedInvite) {
-        return res.status(400).json({
-          ok: false,
-          error: 'already_used',
-          message: 'This invitation link has already been registered. Each unique link can only be used once.'
-        });
+        if (!updatedInvite) {
+          return res.status(400).json({
+            ok: false,
+            error: 'already_used',
+            message: 'This invitation link has already been registered. Each unique link can only be used once.'
+          });
+        }
+
+        // Clear any prior declined entry so only this single accepted registration exists
+        await RSVP.deleteMany({ inviteCode: code, response: 'declined' });
       }
-
-      // Clear any prior declined entry so only this single accepted registration exists
-      await RSVP.deleteMany({ inviteCode: code, response: 'declined' });
 
       // Save RSVP record (protected also by unique partial index in DB)
       try {
         const rsvpDoc = new RSVP({
           ...guestData,
-          inviteCode: code,
+          inviteCode: (code && invite) ? code : 'DIRECT',
           response: 'accepted',
           createdAt: new Date()
         });
@@ -379,7 +375,7 @@ apiRouter.post('/rsvp', async (req, res) => {
         throw err;
       }
 
-      console.log(`Saved RSVP to MongoDB Atlas: ${fullName} (GUEST ${guestNoStr}) [Invite: ${code}]`);
+      console.log(`Saved RSVP to MongoDB Atlas: ${fullName} (GUEST ${guestNoStr}) [Invite: ${(code && invite) ? code : 'DIRECT'}]`);
 
       return res.json({
         ok: true,
@@ -389,16 +385,16 @@ apiRouter.post('/rsvp', async (req, res) => {
       });
     } else {
       // Local fallback
-      if (!code || !memoryInvites.has(code)) {
-        return res.status(404).json({ ok: false, error: 'invalid_code', message: 'Invitation link does not exist.' });
-      }
-      const inv = memoryInvites.get(code);
-      if (inv.status === 'used') {
-        return res.status(400).json({
-          ok: false,
-          error: 'already_used',
-          message: 'This invitation link has already been used. Each unique link can only be used once.'
-        });
+      let inv = null;
+      if (code && memoryInvites.has(code)) {
+        inv = memoryInvites.get(code);
+        if (inv.status === 'used') {
+          return res.status(400).json({
+            ok: false,
+            error: 'already_used',
+            message: 'This invitation link has already been used. Each unique link can only be used once.'
+          });
+        }
       }
 
       fallbackGuestCount += 1;
@@ -414,9 +410,11 @@ apiRouter.post('/rsvp', async (req, res) => {
         address: address ? address.trim() : ''
       };
 
-      inv.status = 'used';
-      inv.usedAt = new Date();
-      inv.guest = guestData;
+      if (inv) {
+        inv.status = 'used';
+        inv.usedAt = new Date();
+        inv.guest = guestData;
+      }
 
       return res.json({
         ok: true,

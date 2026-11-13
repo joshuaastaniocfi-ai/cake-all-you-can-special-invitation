@@ -222,10 +222,6 @@
         alert('This invitation link has already been registered and cannot be reused.');
         show('alreadyUsed');
         return;
-      } else if (serverRes.error === 'invalid_code' || serverRes.error === 'missing_code') {
-        alert(serverRes.message || 'A valid personal invitation link is required.');
-        show('invalidLink');
-        return;
       } else {
         alert(serverRes.message || 'Unable to register RSVP. Please try again.');
         return;
@@ -330,18 +326,6 @@
     });
   }
 
-  // Manual Code Entry Form
-  const enterCodeForm = $('#enterCodeForm');
-  if (enterCodeForm) {
-    enterCodeForm.addEventListener('submit', e => {
-      e.preventDefault();
-      const val = $('#manualCode').value.trim();
-      if (val) {
-        window.location.search = `?code=${encodeURIComponent(val.toUpperCase())}`;
-      }
-    });
-  }
-
   /* ---------- every button, through one delegated handler ---------- */
   const actions = {
     open: () => {
@@ -352,10 +336,6 @@
       openEnvelope();
     },
     respond: () => {
-      if (!inviteCode) {
-        show('invalidLink');
-        return;
-      }
       if (isInviteUsed) {
         show('alreadyUsed');
         return;
@@ -363,10 +343,6 @@
       show('confirm');
     },
     accept: () => {
-      if (!inviteCode) {
-        show('invalidLink');
-        return;
-      }
       if (isInviteUsed) {
         show('alreadyUsed');
         return;
@@ -436,9 +412,12 @@
             return;
           }
         } else if (data.error === 'not_found' || res.status === 404) {
-          opened = true; envelope.hidden = true; html.classList.remove('locked');
-          show('invalidLink');
-          return;
+          sessionStorage.removeItem('cayc_invite_code');
+          inviteCode = '';
+          if (window.location.search) {
+            window.location.replace(window.location.pathname);
+            return;
+          }
         }
       } catch (e) {
         console.warn('Backend verification offline', e);
@@ -448,9 +427,9 @@
     const startId = location.hash.slice(1);
     const startEl = startId && document.getElementById(startId);
     if (startEl && startEl.classList.contains('screen') && startId !== 'invite') {
-      if ((startId === 'form' || startId === 'confirm') && !inviteCode) {
+      if (isInviteUsed && (startId === 'form' || startId === 'confirm')) {
         opened = true; envelope.hidden = true; html.classList.remove('locked');
-        show('invalidLink');
+        show('alreadyUsed');
         return;
       }
       // deep link – skip the envelope
