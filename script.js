@@ -64,6 +64,16 @@
     // Fixed RSVP button is visible whenever on invitation screen after envelope is opened
     setRsvpVisible(isInviteActive);
 
+    if (rsvpFixedBtn) {
+      if (isInviteUsed) {
+        rsvpFixedBtn.textContent = 'View Guest Pass';
+        rsvpFixedBtn.dataset.action = 'viewPass';
+      } else {
+        rsvpFixedBtn.textContent = 'Respond to invitation';
+        rsvpFixedBtn.dataset.action = 'respond';
+      }
+    }
+
     if (!arrowBtn) return;
     if (!isInviteActive) {
       setArrowVisible(false);
@@ -91,6 +101,20 @@
   let isInviteUsed = false;
   let isLinkValid = true;
   let invalidLinkReason = 'This invitation link is not valid. Access to this celebration requires an official personal invitation link.';
+
+  function populatePass(name, no) {
+    if (name) $('#passName').textContent = name;
+    if (no) {
+      const numStr = String(no).padStart(3, '0');
+      $('#passNo').textContent = `GUEST ${numStr}`;
+      $('#passRef').textContent = `GL · 2026 · ${numStr}`;
+    }
+    const passBack = $('#pass .back');
+    if (passBack) {
+      passBack.dataset.go = 'invite';
+      passBack.innerHTML = '<img src="assets/icon-back.svg" alt="">Invitation';
+    }
+  }
 
   /* ---------- Message Box Modal ---------- */
   const msgBox = $('#msgBoxModal');
@@ -122,7 +146,7 @@
       return;
     }
     if (isInviteUsed && (id === 'form' || id === 'confirm')) {
-      id = 'alreadyUsed';
+      id = 'pass';
     }
     screens.forEach(s => { s.hidden = s.id !== id; });
     window.scrollTo(0, 0);
@@ -328,7 +352,10 @@
     $('#passRef').textContent = `GL · 2026 · ${num}`;
     const pass = $('.pass'); pass.style.animation = 'none'; void pass.offsetWidth; pass.style.animation = '';
     const passBack = $('#pass .back');
-    if (passBack) passBack.dataset.go = 'alreadyUsed';
+    if (passBack) {
+      passBack.dataset.go = 'invite';
+      passBack.innerHTML = '<img src="assets/icon-back.svg" alt="">Invitation';
+    }
     show('pass');
   });
 
@@ -373,7 +400,10 @@
           $('#passRef').textContent = `GL · 2026 · ${numStr}`;
           const pass = $('.pass'); pass.style.animation = 'none'; void pass.offsetWidth; pass.style.animation = '';
           const passBack = $('#pass .back');
-          if (passBack) passBack.dataset.go = 'alreadyUsed';
+          if (passBack) {
+            passBack.dataset.go = 'invite';
+            passBack.innerHTML = '<img src="assets/icon-back.svg" alt="">Invitation';
+          }
           show('pass');
         } else {
           errEl.textContent = data.error || 'Name or mobile number does not match this invitation.';
@@ -391,11 +421,10 @@
 
   /* ---------- every button, through one delegated handler ---------- */
   const actions = {
+    viewPass: () => {
+      show('pass');
+    },
     open: () => {
-      if (isInviteUsed) {
-        show('alreadyUsed');
-        return;
-      }
       openEnvelope();
     },
     respond: () => {
@@ -404,7 +433,7 @@
         return;
       }
       if (isInviteUsed) {
-        show('alreadyUsed');
+        show('pass');
         return;
       }
       show('confirm');
@@ -415,7 +444,7 @@
         return;
       }
       if (isInviteUsed) {
-        show('alreadyUsed');
+        show('pass');
         return;
       }
       show('form');
@@ -426,7 +455,7 @@
         return;
       }
       if (isInviteUsed) {
-        show('alreadyUsed');
+        show('pass');
         return;
       }
       fetch('/api/rsvp/decline', {
@@ -483,6 +512,13 @@
       return;
     }
 
+    // Check localStorage in case this browser already registered
+    const savedRsvp = store.get('gl-rsvp');
+    if (savedRsvp && savedRsvp.response === 'accepted') {
+      const savedName = savedRsvp.name || `${savedRsvp.first || ''} ${savedRsvp.last || ''}`.trim();
+      populatePass(savedName, savedRsvp.no);
+    }
+
     try {
       let res = await fetch(`/api/invite/verify?code=${encodeURIComponent(activeCode)}`);
       let data = await res.json();
@@ -497,9 +533,14 @@
         isLinkValid = true;
         if (data.status === 'used') {
           isInviteUsed = true;
-          opened = true; envelope.hidden = true; html.classList.remove('locked');
-          show('alreadyUsed');
-          return;
+          if (data.guest) {
+            populatePass(data.guest.name, data.guest.no);
+          }
+          const passBack = $('#pass .back');
+          if (passBack) {
+            passBack.dataset.go = 'invite';
+            passBack.innerHTML = '<img src="assets/icon-back.svg" alt="">Invitation';
+          }
         } else if (data.status === 'declined') {
           opened = true; envelope.hidden = true; html.classList.remove('locked');
           show('declined');
@@ -524,7 +565,7 @@
     if (startEl && startEl.classList.contains('screen') && startId !== 'invite') {
       if (isInviteUsed && (startId === 'form' || startId === 'confirm')) {
         opened = true; envelope.hidden = true; html.classList.remove('locked');
-        show('alreadyUsed');
+        show('invite');
         return;
       }
       // deep link – skip the envelope

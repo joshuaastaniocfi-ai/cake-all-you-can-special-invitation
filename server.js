@@ -181,13 +181,32 @@ apiRouter.get('/invite/verify', async (req, res) => {
         return res.status(404).json({ ok: false, error: 'not_found', message: 'Invitation link does not exist.' });
       }
 
+      let guestInfo = null;
+      if (invite.status === 'used') {
+        if (invite.guest && (invite.guest.name || invite.guest.first)) {
+          guestInfo = {
+            name: invite.guest.name || `${invite.guest.first || ''} ${invite.guest.last || ''}`.trim() || invite.recipientName || 'Valued Guest',
+            no: invite.guest.guestNo || '001'
+          };
+        } else {
+          const r = await RSVP.findOne({ inviteCode: code, response: 'accepted' });
+          if (r) {
+            guestInfo = {
+              name: r.name || `${r.first || ''} ${r.last || ''}`.trim() || invite.recipientName || 'Valued Guest',
+              no: r.guestNo || '001'
+            };
+          }
+        }
+      }
+
       return res.json({
         ok: true,
         code: invite.code,
         status: invite.status,
         recipientName: invite.recipientName || '',
         usedAt: invite.usedAt || null,
-        guestRegistered: invite.status === 'used'
+        guestRegistered: invite.status === 'used',
+        guest: guestInfo
       });
     } else {
       return res.status(503).json({ ok: false, error: 'db_connecting', message: 'Database connection in progress.' });
