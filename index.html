@@ -283,32 +283,18 @@
         </div>
         <div class="field social-field-wrap">
           <div class="social-header">
-            <label for="socialEmptyTrigger">Social Media Accounts <span class="opt-text">(Optional)</span></label>
+            <label>Social Media Accounts <span class="opt-text">(Optional)</span></label>
             <button type="button" class="add-circle-btn" id="addSocialCircle" data-action="openSocialPicker" aria-label="Add social media account" title="Add social media account">
               <img src="assets/icon-plus.svg" alt="" width="23" height="23">
             </button>
           </div>
           
-          <!-- Empty State (Shown by default when no accounts are added) -->
-          <div class="social-empty-wrap" id="socialEmptyWrap">
-            <button type="button" class="social-empty-trigger" id="socialEmptyTrigger" data-action="openSocialPicker">
-              <span class="trigger-plus-icon"><img src="assets/icon-plus.svg" alt="" width="18" height="18"></span>
-              <span class="trigger-text">Add social media account</span>
-            </button>
-          </div>
-
-          <!-- Dynamic Social Media Inputs with platform logo on the left -->
+          <!-- Dynamic Social Media Inputs (2 per row) with platform logo on the left -->
           <div class="social-list" id="socialList"></div>
-
-          <!-- Add more account button (visible when at least 1 account is added, up to 5) -->
-          <button type="button" class="social-add-more-btn" id="socialAddMoreBtn" data-action="openSocialPicker" style="display:none">
-            <img src="assets/icon-plus.svg" alt="" width="16" height="16">
-            <span>Add another social account</span>
-          </button>
         </div>
         <div class="field"><label for="address">Address</label><textarea id="address" name="address"
             placeholder="e.g. 1234 Street, Barangay San Jose, Tacloban City"></textarea></div>
-        <label class="consent" id="consentWrap"><input type="checkbox" id="consent" checked><span
+        <label class="consent" id="consentWrap"><input type="checkbox" id="consent"><span
             class="box">✓</span><span>I agree to the use of my details for event registration and guest communications.
             *</span></label>
         <button class="btn primary submit" type="submit">Confirm &amp; get my guest pass</button>

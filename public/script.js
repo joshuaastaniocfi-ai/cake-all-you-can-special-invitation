@@ -324,10 +324,8 @@
   const socialModal = $('#socialModal');
   const platformGrid = $('#platformGrid');
   const socialList = $('#socialList');
-  const socialEmptyWrap = $('#socialEmptyWrap');
-  const socialAddMoreBtn = $('#socialAddMoreBtn');
   const addSocialCircle = $('#addSocialCircle');
-  const MAX_SOCIAL_ACCOUNTS = 5;
+  const MAX_SOCIAL_ACCOUNTS = 6;
 
   function renderPlatformGrid() {
     if (!platformGrid || platformGrid.children.length > 0) return;
@@ -360,15 +358,10 @@
 
   function updateSocialVisibility() {
     const count = socialList ? socialList.children.length : 0;
-    if (socialEmptyWrap) {
-      socialEmptyWrap.style.display = count === 0 ? 'block' : 'none';
-    }
-    if (socialAddMoreBtn) {
-      socialAddMoreBtn.style.display = (count > 0 && count < MAX_SOCIAL_ACCOUNTS) ? 'inline-flex' : 'none';
-    }
     if (addSocialCircle) {
       addSocialCircle.disabled = count >= MAX_SOCIAL_ACCOUNTS;
       addSocialCircle.title = count >= MAX_SOCIAL_ACCOUNTS ? 'Maximum accounts reached' : 'Add social media account';
+      addSocialCircle.style.opacity = count >= MAX_SOCIAL_ACCOUNTS ? '0.35' : '1';
     }
   }
 
@@ -381,16 +374,16 @@
     row.className = 'social-input-row';
     row.dataset.platform = platform.name;
 
+    // Display ONLY the brand logo on the left (no text label)
     row.innerHTML = `
       <div class="social-input-box">
         <div class="social-box-left" title="${platform.name}">
           <span class="social-logo-wrap">${platform.logoSvg}</span>
-          <span class="social-platform-label">${platform.name}</span>
         </div>
         <div class="social-box-divider"></div>
-        <input type="text" class="social-inner-input" placeholder="${platform.placeholder}" autocomplete="off" spellcheck="false">
+        <input type="text" class="social-inner-input" placeholder="${platform.placeholder}" autocomplete="off" spellcheck="false" title="${platform.name}">
         <button type="button" class="social-row-remove" aria-label="Remove ${platform.name} account" title="Remove account">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
       </div>
     `;
@@ -438,21 +431,6 @@
 
   if (addSocialCircle) {
     addSocialCircle.addEventListener('click', e => {
-      e.preventDefault();
-      openSocialPicker();
-    });
-  }
-
-  const socialEmptyTrigger = $('#socialEmptyTrigger');
-  if (socialEmptyTrigger) {
-    socialEmptyTrigger.addEventListener('click', e => {
-      e.preventDefault();
-      openSocialPicker();
-    });
-  }
-
-  if (socialAddMoreBtn) {
-    socialAddMoreBtn.addEventListener('click', e => {
       e.preventDefault();
       openSocialPicker();
     });

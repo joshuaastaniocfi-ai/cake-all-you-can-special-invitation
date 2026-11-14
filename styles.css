@@ -368,61 +368,23 @@ body[data-bg="gold"] .ambient-overlay {
   transform: none;
 }
 
-/* Empty state trigger button */
-.social-empty-wrap {
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.social-empty-trigger {
-  width: 100%;
-  background: rgba(255, 255, 255, 0.85);
-  border: 1.5px dashed #d8c9a3;
-  border-radius: 12px;
-  padding: 10px 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 9px;
-  cursor: pointer;
-  color: var(--brown-800);
-  font: 500 11px 'Montserrat', sans-serif;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.social-empty-trigger:hover {
-  background: #fffdf8;
-  border-color: #b98a3f;
-  border-style: solid;
-  box-shadow: 0 4px 14px rgba(185, 138, 63, 0.15);
-  transform: translateY(-1px);
-}
-.social-empty-trigger:active {
-  transform: scale(0.98);
-}
-.social-empty-trigger .trigger-plus-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.25s ease;
-}
-.social-empty-trigger:hover .trigger-plus-icon {
-  transform: rotate(90deg) scale(1.1);
-}
-
-/* List of added social rows */
+/* 2 social media per row */
 .social-list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 8px;
 }
 .social-input-row {
   display: flex;
   align-items: center;
   width: 100%;
-  animation: socialRowIn 0.36s cubic-bezier(0.16, 1, 0.3, 1) both;
+  min-width: 0;
+  animation: socialRowIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 @keyframes socialRowIn {
   from {
     opacity: 0;
-    transform: translateY(-10px) scale(0.97);
+    transform: translateY(-8px) scale(0.96);
   }
   to {
     opacity: 1;
@@ -430,14 +392,12 @@ body[data-bg="gold"] .ambient-overlay {
   }
 }
 .social-input-row.removing {
-  animation: socialRowOut 0.24s cubic-bezier(0.4, 0, 1, 1) forwards;
+  animation: socialRowOut 0.22s cubic-bezier(0.4, 0, 1, 1) forwards;
 }
 @keyframes socialRowOut {
   to {
     opacity: 0;
-    transform: translateY(-8px) scale(0.94);
-    height: 0;
-    margin: 0;
+    transform: scale(0.85);
   }
 }
 
@@ -448,40 +408,39 @@ body[data-bg="gold"] .ambient-overlay {
   background: rgba(255, 255, 255, 0.94);
   border: 1px solid #d8c9a3;
   border-radius: 12px;
-  padding: 4px 6px 4px 10px;
+  padding: 4px 6px;
   box-shadow: 0 2px 6px rgba(88, 44, 14, 0.04);
   transition: border-color 0.2s, box-shadow 0.2s;
+  min-width: 0;
 }
 .social-input-box:focus-within {
   border-color: #b98a3f;
-  box-shadow: 0 0 0 3px rgba(244, 199, 47, 0.25);
+  box-shadow: 0 0 0 2.5px rgba(244, 199, 47, 0.25);
 }
 .social-box-left {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
-}
-.social-logo-wrap {
-  width: 22px;
-  height: 22px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
-.social-platform-label {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 10px;
-  font-weight: 600;
-  color: #582C0E;
-  white-space: nowrap;
+.social-logo-wrap {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.social-logo-wrap svg {
+  width: 20px;
+  height: 20px;
+  display: block;
 }
 .social-box-divider {
   width: 1px;
-  height: 18px;
-  background: rgba(185, 138, 63, 0.25);
-  margin: 0 8px;
+  height: 15px;
+  background: rgba(185, 138, 63, 0.28);
+  margin: 0 5px;
   flex-shrink: 0;
 }
 .social-inner-input {
@@ -491,16 +450,16 @@ body[data-bg="gold"] .ambient-overlay {
   background: transparent !important;
   box-shadow: none !important;
   outline: none !important;
-  padding: 6px 4px !important;
-  font: italic 500 11px 'Montserrat', sans-serif !important;
+  padding: 5px 2px !important;
+  font: italic 500 10.5px 'Montserrat', sans-serif !important;
   color: var(--brown-800) !important;
 }
 .social-inner-input::placeholder {
   color: rgba(88, 50, 14, 0.45) !important;
 }
 .social-row-remove {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   border: none;
   background: rgba(185, 138, 63, 0.1);
@@ -519,27 +478,7 @@ body[data-bg="gold"] .ambient-overlay {
   transform: scale(1.1);
 }
 .social-row-remove:active {
-  transform: scale(0.92);
-}
-
-/* Add another social account link/button */
-.social-add-more-btn {
-  margin-top: 8px;
-  background: transparent;
-  border: none;
-  color: #8c5d23;
-  font: 600 10.5px 'Montserrat', sans-serif;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  padding: 4px 6px;
-  border-radius: 6px;
-  transition: all 0.2s;
-}
-.social-add-more-btn:hover {
-  color: #582C0E;
-  background: rgba(185, 138, 63, 0.1);
+  transform: scale(0.9);
 }
 
 /* ---------- Social Media Picker Modal & Backdrop ---------- */
