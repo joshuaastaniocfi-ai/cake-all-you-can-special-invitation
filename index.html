@@ -15,6 +15,19 @@
 
 <body data-bg="gold">
 
+  <!-- Global Shared SVG Defs (ensures gradient paints never break or unmount) -->
+  <svg width="0" height="0" style="position:absolute;width:0;height:0;overflow:hidden;pointer-events:none" aria-hidden="true">
+    <defs>
+      <radialGradient id="globalIgGrad" cx="30%" cy="107%" r="150%">
+        <stop offset="0%" stop-color="#fdf497"/>
+        <stop offset="5%" stop-color="#fdf497"/>
+        <stop offset="45%" stop-color="#fd5949"/>
+        <stop offset="60%" stop-color="#d6249f"/>
+        <stop offset="90%" stop-color="#285AEB"/>
+      </radialGradient>
+    </defs>
+  </svg>
+
   <!-- Shared decorative background (cloned into every screen marked data-decor) -->
   <template id="decor-tpl">
     <div class="bg"><img src="assets/bg.png" alt=""></div>

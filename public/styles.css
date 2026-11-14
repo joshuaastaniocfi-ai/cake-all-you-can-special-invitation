@@ -393,10 +393,11 @@ body[data-bg="gold"] .ambient-overlay {
 }
 .social-dropdown-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 10px 6px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
   justify-items: center;
   align-items: center;
+  padding: 4px 8px;
 }
 .social-drop-item {
   width: 44px;
@@ -427,7 +428,6 @@ body[data-bg="gold"] .ambient-overlay {
   height: 25px;
   display: block;
   pointer-events: none;
-  border-radius: 50%;
 }
 
 /* Sequential Cascading Drop-Down Animation */
@@ -450,16 +450,18 @@ body[data-bg="gold"] .ambient-overlay {
   }
 }
 
-.social-dropdown-panel.is-active .social-drop-item:nth-child(1)  { animation-delay: 0.02s; }
-.social-dropdown-panel.is-active .social-drop-item:nth-child(2)  { animation-delay: 0.05s; }
-.social-dropdown-panel.is-active .social-drop-item:nth-child(3)  { animation-delay: 0.08s; }
-.social-dropdown-panel.is-active .social-drop-item:nth-child(4)  { animation-delay: 0.11s; }
-.social-dropdown-panel.is-active .social-drop-item:nth-child(5)  { animation-delay: 0.14s; }
-.social-dropdown-panel.is-active .social-drop-item:nth-child(6)  { animation-delay: 0.17s; }
-.social-dropdown-panel.is-active .social-drop-item:nth-child(7)  { animation-delay: 0.20s; }
-.social-dropdown-panel.is-active .social-drop-item:nth-child(8)  { animation-delay: 0.23s; }
-.social-dropdown-panel.is-active .social-drop-item:nth-child(9)  { animation-delay: 0.26s; }
-.social-dropdown-panel.is-active .social-drop-item:nth-child(10) { animation-delay: 0.29s; }
+.social-dropdown-panel.is-active .social-drop-item:nth-child(1)  { animation-delay: 0.03s; }
+.social-dropdown-panel.is-active .social-drop-item:nth-child(2)  { animation-delay: 0.08s; }
+.social-dropdown-panel.is-active .social-drop-item:nth-child(3)  { animation-delay: 0.13s; }
+.social-dropdown-panel.is-active .social-drop-item:nth-child(4)  { animation-delay: 0.18s; }
+
+.ig-svg-icon {
+  background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%) !important;
+  border-radius: 5px !important;
+}
+.social-drop-item .ig-svg-icon {
+  border-radius: 6.5px !important;
+}
 
 /* 2 social media per row */
 .social-list {
