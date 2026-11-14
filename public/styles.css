@@ -4,11 +4,13 @@
   --muted:#755c3e; --gold:#f4c72f; --cream:#fffef8;
   --serif:'Cormorant Garamond',serif; --sans:'Poppins',sans-serif;
 }
-*{box-sizing:border-box;margin:0;padding:0}
-html{-webkit-text-size-adjust:100%}
-body{background:#fff6dc;font-family:var(--sans);color:var(--brown-800);overflow-x:hidden}
+*{box-sizing:border-box;margin:0;padding:0;scrollbar-width:none;-ms-overflow-style:none}
+*::-webkit-scrollbar{display:none;width:0 !important;height:0 !important}
+html{-webkit-text-size-adjust:100%;scrollbar-width:none;-ms-overflow-style:none}
+body{background:#fff6dc;font-family:var(--sans);color:var(--brown-800);overflow-x:hidden;scrollbar-width:none;-ms-overflow-style:none}
 body[data-bg="gold"]{background:var(--gold)}
 html.locked,html.locked body{overflow:hidden;height:100%}
+::-webkit-scrollbar{display:none;width:0 !important;height:0 !important}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 img{display:block}
 
