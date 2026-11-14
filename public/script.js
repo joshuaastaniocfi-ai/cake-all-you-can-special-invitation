@@ -343,75 +343,6 @@
     }
   });
 
-  /* ---------- Smooth Typing Animation for Invitation Screen ---------- */
-  let hasTypedInvite = false;
-
-  function typeWriterEffect(el, text, speed, onDone) {
-    if (!el) { if (onDone) onDone(); return; }
-    el.innerHTML = '';
-    const cursor = document.createElement('span');
-    cursor.className = 'type-cursor';
-    cursor.textContent = '|';
-    el.appendChild(cursor);
-
-    let idx = 0;
-    const chars = Array.from(text);
-
-    function step() {
-      if (idx < chars.length) {
-        const char = chars[idx];
-        if (char === '\n') {
-          cursor.insertAdjacentHTML('beforebegin', '<br>');
-        } else {
-          cursor.insertAdjacentText('beforebegin', char);
-        }
-        idx++;
-        const charDelay = char === ' ' ? speed * 1.4 : (char === ',' || char === '.') ? speed * 2.2 : speed + (Math.random() * 12 - 6);
-        setTimeout(step, Math.max(18, charDelay));
-      } else {
-        setTimeout(() => {
-          cursor.classList.add('fade-out');
-          setTimeout(() => cursor.remove(), 350);
-          if (onDone) onDone();
-        }, 250);
-      }
-    }
-
-    step();
-  }
-
-  function startInviteTypingAnimation() {
-    if (hasTypedInvite) return;
-    hasTypedInvite = true;
-
-    const eyebrow = $('#inviteEyebrow');
-    const titleWrap = $('#inviteTitleWrap');
-    const sub = $('#inviteSub');
-    const logos = $('#inviteLogos');
-
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      if (eyebrow) eyebrow.innerHTML = 'YOU ARE INVITED TO';
-      if (titleWrap) titleWrap.classList.add('is-visible');
-      if (sub) sub.innerHTML = 'In Celebration of<br>International Cake Day';
-      if (logos) logos.classList.add('is-visible');
-      return;
-    }
-
-    // Phase 1: Type eyebrow "YOU ARE INVITED TO"
-    typeWriterEffect(eyebrow, 'YOU ARE INVITED TO', 40, () => {
-      // Phase 2: Majestic Bloom of "Cake All You Can" script art
-      if (titleWrap) titleWrap.classList.add('is-visible');
-
-      setTimeout(() => {
-        // Phase 3: Type "In Celebration of\nInternational Cake Day"
-        typeWriterEffect(sub, 'In Celebration of\nInternational Cake Day', 38, () => {
-          // Phase 4: Fade in Goldilocks & Robinsons logos
-          if (logos) logos.classList.add('is-visible');
-        });
-      }, 400);
-    });
-  }
-
   /* ---------- envelope opening (smooth Figma Smart Animate split) ---------- */
   function finishOpen() {
     opened = true;
@@ -424,7 +355,6 @@
     document.body.dataset.bg = 'cream';
     updateFloatingUi();
     startFallingLeaves();
-    startInviteTypingAnimation();
   }
   window.finishOpen = finishOpen;
 
@@ -451,10 +381,9 @@
     const DURATION = 2600; // Slow, graceful cinematic opening animation (2.6s)
     const EASING = 'cubic-bezier(0.35, 0, 0.15, 1)'; // Elegant, smooth ease-in-out curve with immediate continuous motion
 
-    // Start falling leaves & typing animations gracefully right as envelope begins sliding open
+    // Start falling leaves gracefully right as envelope begins sliding open
     setTimeout(() => {
       startFallingLeaves();
-      startInviteTypingAnimation();
     }, 600);
 
     // Safety fallback: guarantee envelope disappears even if animation promises stall
