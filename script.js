@@ -138,6 +138,15 @@
 
   function onScroll() {
     updateFloatingUi();
+    if (isLeavesRunning && !hasLeavesFinished) {
+      const y = window.scrollY;
+      if (y > 35) {
+        stopFallingLeaves(false);
+      } else if (leavesCanvas) {
+        const op = Math.max(0, 1 - (y / 35));
+        leavesCanvas.style.opacity = String(op);
+      }
+    }
   }
   window.addEventListener('scroll', onScroll, { passive: true });
   window.addEventListener('resize', onScroll, { passive: true });
@@ -182,6 +191,9 @@
 
   const screens = $$('.screen');
   function show(id) {
+    if (id !== 'invite') {
+      stopFallingLeaves(true);
+    }
     if ((!isLinkValid || !inviteCode) && (id === 'form' || id === 'confirm')) {
       showMsgBox(invalidLinkReason, 'Invitation Required');
       return;
@@ -204,6 +216,9 @@
   let leavesAnimId = null;
   let leavesList = [];
   let isLeavesRunning = false;
+  let canSpawnLeaves = false;
+  let hasLeavesFinished = false;
+  let spawnTimer = null;
   const LEAF_COUNT = 36;
 
   function initFallingLeaves() {
@@ -300,8 +315,10 @@
 
     leavesCtx.clearRect(0, 0, w, h);
 
+    let activeCount = 0;
     for (let i = 0; i < leavesList.length; i++) {
       const p = leavesList[i];
+      if (!p) continue;
       p.swayAngle += p.swaySpeed;
       p.rotation += p.rotationSpeed;
       p.flipAngle += p.flipSpeed;
@@ -311,18 +328,74 @@
       drawLeaf(leavesCtx, p);
 
       if (p.y > h + 35 || p.x < -35 || p.x > w + 35) {
-        leavesList[i] = createLeafParticle(-30);
+        if (canSpawnLeaves) {
+          leavesList[i] = createLeafParticle(-30);
+          activeCount++;
+        } else {
+          leavesList[i] = null;
+        }
+      } else {
+        activeCount++;
       }
+    }
+
+    if (activeCount === 0 && !canSpawnLeaves) {
+      stopFallingLeaves(true);
+      return;
     }
 
     leavesAnimId = requestAnimationFrame(updateAndDrawLeaves);
   }
 
+  function stopFallingLeaves(immediate = false) {
+    canSpawnLeaves = false;
+    isLeavesRunning = false;
+    hasLeavesFinished = true;
+    if (spawnTimer) {
+      clearTimeout(spawnTimer);
+      spawnTimer = null;
+    }
+    if (leavesCanvas) {
+      leavesCanvas.classList.remove('is-active');
+      if (immediate) {
+        leavesCanvas.style.opacity = '0';
+        leavesCanvas.style.display = 'none';
+        if (leavesCtx) leavesCtx.clearRect(0, 0, leavesCanvas.width, leavesCanvas.height);
+        if (leavesAnimId) {
+          cancelAnimationFrame(leavesAnimId);
+          leavesAnimId = null;
+        }
+        leavesList = [];
+      } else {
+        leavesCanvas.style.opacity = '0';
+        setTimeout(() => {
+          if (!isLeavesRunning && leavesCanvas) {
+            leavesCanvas.style.display = 'none';
+            if (leavesCtx) leavesCtx.clearRect(0, 0, leavesCanvas.width, leavesCanvas.height);
+            if (leavesAnimId) {
+              cancelAnimationFrame(leavesAnimId);
+              leavesAnimId = null;
+            }
+            leavesList = [];
+          }
+        }, 450);
+      }
+    }
+  }
+
   function startFallingLeaves() {
-    if (isLeavesRunning) return;
+    if (isLeavesRunning || hasLeavesFinished) return;
+    const inviteScreen = document.getElementById('invite');
+    if (!inviteScreen || inviteScreen.hidden) return;
+    if (window.scrollY > 30) return;
+
     if (!leavesCanvas) initFallingLeaves();
     if (!leavesCanvas) return;
+
     isLeavesRunning = true;
+    canSpawnLeaves = true;
+    leavesCanvas.style.display = 'block';
+    leavesCanvas.style.opacity = '1';
     leavesCanvas.classList.add('is-active');
 
     const h = window.innerHeight;
@@ -333,6 +406,11 @@
 
     if (leavesAnimId) cancelAnimationFrame(leavesAnimId);
     leavesAnimId = requestAnimationFrame(updateAndDrawLeaves);
+
+    if (spawnTimer) clearTimeout(spawnTimer);
+    spawnTimer = setTimeout(() => {
+      canSpawnLeaves = false;
+    }, 6500);
   }
 
   document.addEventListener('visibilitychange', () => {

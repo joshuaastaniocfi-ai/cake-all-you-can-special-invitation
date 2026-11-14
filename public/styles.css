@@ -404,7 +404,7 @@ body[data-bg="gold"] .ambient-overlay {
   pointer-events: none;
   z-index: 12;
   opacity: 0;
-  transition: opacity 1.4s ease-in-out;
+  transition: opacity 0.4s ease-out;
 }
 .falling-leaves-canvas.is-active {
   opacity: 1;
