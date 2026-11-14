@@ -99,28 +99,33 @@
   <div class="ambient-glass left" aria-hidden="true"></div>
   <div class="ambient-glass right" aria-hidden="true"></div>
 
+  <!-- Falling Leaves & Golden Rose Petals Canvas -->
+  <canvas id="fallingLeavesCanvas" class="falling-leaves-canvas" aria-hidden="true"></canvas>
+
   <main class="stage" id="stage">
 
     <!-- ============ 2 · INVITATION ============ -->
     <section class="screen" id="invite" data-decor data-dy="0" data-flower="-202px" aria-label="Invitation">
 
       <!-- title -->
-      <div class="w" style="left:8px;top:214px;width:429.307px;height:275.216px">
+      <div class="w invite-title-wrap" id="inviteTitleWrap" style="left:8px;top:214px;width:429.307px;height:275.216px">
         <div class="r" style="width:422.022px;height:263.377px;rotate:1.62deg">
           <div class="crop"><img src="assets/title-art.png" alt="Cake All You Can"
               style="height:200.27%;left:-2.92%;top:9.5%;width:100%"></div>
         </div>
       </div>
-      <p class="t c serif"
+      <p class="t c serif invite-eyebrow" id="inviteEyebrow"
         style="left:50%;top:242px;font-size:20px;line-height:1;letter-spacing:1px;color:#582c00;white-space:nowrap">YOU
         ARE INVITED TO</p>
-      <p class="t serif"
+      <p class="t serif invite-sub" id="inviteSub"
         style="left:50%;transform:translateX(-50%);top:460px;width:230px;font-size:20px;line-height:1.15;letter-spacing:-.3px;color:#582c00;text-align:center">In
         Celebration of<br>International Cake Day</p>
-      <img class="abs" src="assets/logo.png" alt="Goldilocks"
-        style="left:90px;top:564px;width:101px;height:25px;object-fit:cover">
-      <img class="abs" src="assets/robinsons.png" alt="Robinsons Tacloban"
-        style="left:234px;top:564px;width:93px;height:25px;object-fit:cover">
+      <div class="invite-logos-wrap" id="inviteLogos">
+        <img class="abs" src="assets/logo.png" alt="Goldilocks"
+          style="left:90px;top:564px;width:101px;height:25px;object-fit:cover">
+        <img class="abs" src="assets/robinsons.png" alt="Robinsons Tacloban"
+          style="left:234px;top:564px;width:93px;height:25px;object-fit:cover">
+      </div>
 
       <!-- intro copy -->
       <img class="abs" src="assets/cake-matcha-alone.png" alt="Matcha cake"

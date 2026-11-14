@@ -198,6 +198,220 @@
     updateFloatingUi();
   }
 
+  /* ---------- Falling Leaves & Golden Petals Engine ---------- */
+  let leavesCanvas = null;
+  let leavesCtx = null;
+  let leavesAnimId = null;
+  let leavesList = [];
+  let isLeavesRunning = false;
+  const LEAF_COUNT = 36;
+
+  function initFallingLeaves() {
+    leavesCanvas = document.getElementById('fallingLeavesCanvas');
+    if (!leavesCanvas) return;
+    leavesCtx = leavesCanvas.getContext('2d');
+    resizeLeavesCanvas();
+    window.addEventListener('resize', resizeLeavesCanvas);
+  }
+
+  function resizeLeavesCanvas() {
+    if (!leavesCanvas) return;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    leavesCanvas.width = window.innerWidth * dpr;
+    leavesCanvas.height = window.innerHeight * dpr;
+    if (leavesCtx) leavesCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  function createLeafParticle(initialY) {
+    const w = window.innerWidth;
+    const types = ['goldLeaf', 'rosePetal', 'amberLeaf', 'goldFlake'];
+    const type = types[Math.floor(Math.random() * types.length)];
+
+    const colors = {
+      goldLeaf: ['#e5a93b', '#f5cb5c', '#d49428'],
+      rosePetal: ['#e89578', '#f2b199', '#f7cca0'],
+      amberLeaf: ['#c97e2e', '#e3993d', '#f0b768'],
+      goldFlake: ['#f4c72f', '#f9da6a', '#e8b828']
+    };
+    const palette = colors[type];
+    const color = palette[Math.floor(Math.random() * palette.length)];
+
+    return {
+      type,
+      color,
+      x: Math.random() * w,
+      y: initialY !== undefined ? initialY : -35 - Math.random() * 50,
+      size: type === 'goldFlake' ? 4 + Math.random() * 4 : 10 + Math.random() * 11,
+      speedY: 0.85 + Math.random() * 1.35,
+      speedX: -0.3 + Math.random() * 0.6,
+      swayAngle: Math.random() * Math.PI * 2,
+      swaySpeed: 0.015 + Math.random() * 0.02,
+      swayRadius: 0.8 + Math.random() * 1.3,
+      rotation: Math.random() * Math.PI * 2,
+      rotationSpeed: -0.015 + Math.random() * 0.03,
+      flipAngle: Math.random() * Math.PI * 2,
+      flipSpeed: 0.015 + Math.random() * 0.03,
+      opacity: 0.45 + Math.random() * 0.45
+    };
+  }
+
+  function drawLeaf(ctx, p) {
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.rotation);
+    ctx.scale(Math.cos(p.flipAngle), 1);
+    ctx.globalAlpha = p.opacity;
+
+    if (p.type === 'rosePetal') {
+      ctx.beginPath();
+      ctx.moveTo(0, -p.size);
+      ctx.bezierCurveTo(p.size * 0.85, -p.size * 0.5, p.size * 0.9, p.size * 0.6, 0, p.size);
+      ctx.bezierCurveTo(-p.size * 0.9, p.size * 0.6, -p.size * 0.85, -p.size * 0.5, 0, -p.size);
+      ctx.fillStyle = p.color;
+      ctx.fill();
+    } else if (p.type === 'goldFlake') {
+      ctx.beginPath();
+      ctx.arc(0, 0, p.size * 0.6, 0, Math.PI * 2);
+      ctx.fillStyle = p.color;
+      ctx.fill();
+    } else {
+      ctx.beginPath();
+      ctx.moveTo(0, -p.size);
+      ctx.quadraticCurveTo(p.size * 0.65, 0, 0, p.size);
+      ctx.quadraticCurveTo(-p.size * 0.65, 0, 0, -p.size);
+      ctx.fillStyle = p.color;
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.moveTo(0, -p.size * 0.7);
+      ctx.lineTo(0, p.size * 0.8);
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+      ctx.lineWidth = 0.8;
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  }
+
+  function updateAndDrawLeaves() {
+    if (!leavesCtx || !leavesCanvas || !isLeavesRunning) return;
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+
+    leavesCtx.clearRect(0, 0, w, h);
+
+    for (let i = 0; i < leavesList.length; i++) {
+      const p = leavesList[i];
+      p.swayAngle += p.swaySpeed;
+      p.rotation += p.rotationSpeed;
+      p.flipAngle += p.flipSpeed;
+      p.y += p.speedY;
+      p.x += Math.sin(p.swayAngle) * p.swayRadius + p.speedX;
+
+      drawLeaf(leavesCtx, p);
+
+      if (p.y > h + 35 || p.x < -35 || p.x > w + 35) {
+        leavesList[i] = createLeafParticle(-30);
+      }
+    }
+
+    leavesAnimId = requestAnimationFrame(updateAndDrawLeaves);
+  }
+
+  function startFallingLeaves() {
+    if (isLeavesRunning) return;
+    if (!leavesCanvas) initFallingLeaves();
+    if (!leavesCanvas) return;
+    isLeavesRunning = true;
+    leavesCanvas.classList.add('is-active');
+
+    const h = window.innerHeight;
+    leavesList = [];
+    for (let i = 0; i < LEAF_COUNT; i++) {
+      leavesList.push(createLeafParticle(-30 + Math.random() * (h * 0.75)));
+    }
+
+    if (leavesAnimId) cancelAnimationFrame(leavesAnimId);
+    leavesAnimId = requestAnimationFrame(updateAndDrawLeaves);
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      if (leavesAnimId) cancelAnimationFrame(leavesAnimId);
+    } else if (isLeavesRunning) {
+      leavesAnimId = requestAnimationFrame(updateAndDrawLeaves);
+    }
+  });
+
+  /* ---------- Smooth Typing Animation for Invitation Screen ---------- */
+  let hasTypedInvite = false;
+
+  function typeWriterEffect(el, text, speed, onDone) {
+    if (!el) { if (onDone) onDone(); return; }
+    el.innerHTML = '';
+    const cursor = document.createElement('span');
+    cursor.className = 'type-cursor';
+    cursor.textContent = '|';
+    el.appendChild(cursor);
+
+    let idx = 0;
+    const chars = Array.from(text);
+
+    function step() {
+      if (idx < chars.length) {
+        const char = chars[idx];
+        if (char === '\n') {
+          cursor.insertAdjacentHTML('beforebegin', '<br>');
+        } else {
+          cursor.insertAdjacentText('beforebegin', char);
+        }
+        idx++;
+        const charDelay = char === ' ' ? speed * 1.4 : (char === ',' || char === '.') ? speed * 2.2 : speed + (Math.random() * 12 - 6);
+        setTimeout(step, Math.max(18, charDelay));
+      } else {
+        setTimeout(() => {
+          cursor.classList.add('fade-out');
+          setTimeout(() => cursor.remove(), 350);
+          if (onDone) onDone();
+        }, 250);
+      }
+    }
+
+    step();
+  }
+
+  function startInviteTypingAnimation() {
+    if (hasTypedInvite) return;
+    hasTypedInvite = true;
+
+    const eyebrow = $('#inviteEyebrow');
+    const titleWrap = $('#inviteTitleWrap');
+    const sub = $('#inviteSub');
+    const logos = $('#inviteLogos');
+
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      if (eyebrow) eyebrow.innerHTML = 'YOU ARE INVITED TO';
+      if (titleWrap) titleWrap.classList.add('is-visible');
+      if (sub) sub.innerHTML = 'In Celebration of<br>International Cake Day';
+      if (logos) logos.classList.add('is-visible');
+      return;
+    }
+
+    // Phase 1: Type eyebrow "YOU ARE INVITED TO"
+    typeWriterEffect(eyebrow, 'YOU ARE INVITED TO', 40, () => {
+      // Phase 2: Majestic Bloom of "Cake All You Can" script art
+      if (titleWrap) titleWrap.classList.add('is-visible');
+
+      setTimeout(() => {
+        // Phase 3: Type "In Celebration of\nInternational Cake Day"
+        typeWriterEffect(sub, 'In Celebration of\nInternational Cake Day', 38, () => {
+          // Phase 4: Fade in Goldilocks & Robinsons logos
+          if (logos) logos.classList.add('is-visible');
+        });
+      }, 400);
+    });
+  }
+
   /* ---------- envelope opening (smooth Figma Smart Animate split) ---------- */
   function finishOpen() {
     opened = true;
@@ -209,6 +423,8 @@
     html.classList.remove('locked');
     document.body.dataset.bg = 'cream';
     updateFloatingUi();
+    startFallingLeaves();
+    startInviteTypingAnimation();
   }
   window.finishOpen = finishOpen;
 
@@ -234,6 +450,12 @@
 
     const DURATION = 2600; // Slow, graceful cinematic opening animation (2.6s)
     const EASING = 'cubic-bezier(0.35, 0, 0.15, 1)'; // Elegant, smooth ease-in-out curve with immediate continuous motion
+
+    // Start falling leaves & typing animations gracefully right as envelope begins sliding open
+    setTimeout(() => {
+      startFallingLeaves();
+      startInviteTypingAnimation();
+    }, 600);
 
     // Safety fallback: guarantee envelope disappears even if animation promises stall
     const fallbackTimer = setTimeout(() => {
