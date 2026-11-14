@@ -227,18 +227,18 @@
       return finishOpen();
     }
 
-    if (hint) anim(hint, [{ opacity: 0.7 }, { opacity: 0 }], { duration: 250 });
+    if (hint) anim(hint, [{ opacity: 0.7 }, { opacity: 0 }], { duration: 400 });
 
     if (envBackdrop) envBackdrop.style.display = 'none';
     document.body.dataset.bg = 'cream';
 
-    const DURATION = 900; // Responsive, smooth 900ms cinematic opening animation
-    const EASING = 'cubic-bezier(0.22, 1, 0.36, 1)'; // Immediate feedback with graceful deceleration
+    const DURATION = 2600; // Slow, graceful cinematic opening animation (2.6s)
+    const EASING = 'cubic-bezier(0.35, 0, 0.15, 1)'; // Elegant, smooth ease-in-out curve with immediate continuous motion
 
     // Safety fallback: guarantee envelope disappears even if animation promises stall
     const fallbackTimer = setTimeout(() => {
       finishOpen();
-    }, DURATION + 100);
+    }, DURATION + 200);
 
     // Top section (flap + seal) slides smoothly UP
     const topAnim = anim(envTop, [
