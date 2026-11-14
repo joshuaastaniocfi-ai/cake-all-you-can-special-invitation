@@ -332,6 +332,18 @@
     }
   }
 
+  function adjustFormBottomPosition() {
+    const formEl = $('#guestForm');
+    const dateText = $('#formDateText');
+    const locText = $('#formLocText');
+    if (!formEl || !dateText || !locText) return;
+    const formBottom = formEl.offsetTop + formEl.offsetHeight;
+    const baseDateTop = 1032;
+    const targetDateTop = Math.max(baseDateTop, formBottom + 35);
+    dateText.style.top = `${targetDateTop}px`;
+    locText.style.top = `${targetDateTop + 18}px`;
+  }
+
   function updateSocialVisibility() {
     const count = socialList ? socialList.children.length : 0;
     if (addSocialCircle) {
@@ -339,6 +351,7 @@
       addSocialCircle.title = count >= MAX_SOCIAL_ACCOUNTS ? 'Maximum accounts reached' : 'Add social media account';
       addSocialCircle.style.opacity = count >= MAX_SOCIAL_ACCOUNTS ? '0.35' : '1';
     }
+    adjustFormBottomPosition();
   }
 
   function addSocialAccount(platformId) {
