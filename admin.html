@@ -711,10 +711,14 @@
 
           let guestHtml = '<span style="color:#a89478">—</span>';
           if (isUsed && item.guest) {
+            const socialHtml = (item.guest.social && item.guest.social.length)
+              ? `<div class="sub" style="margin-top:2px;color:#855e32">🌐 ${escapeHtml(item.guest.social.join(', '))}</div>`
+              : '';
             guestHtml = `
               <div class="guest-info">
                 <div class="name">${escapeHtml(item.guest.name || 'Registered Guest')}</div>
                 <div class="sub">📱 ${escapeHtml(item.guest.mobile || '')} &bull; ✉️ ${escapeHtml(item.guest.email || '')}</div>
+                ${socialHtml}
               </div>
             `;
           }
@@ -803,7 +807,7 @@
       // Export CSV
       document.getElementById('exportBtn').addEventListener('click', () => {
         const rows = [
-          ['Invitation Code', 'Status', 'Assigned Recipient', 'Guest Pass No', 'Guest Full Name', 'Mobile Number', 'Email', 'Registered At']
+          ['Invitation Code', 'Status', 'Assigned Recipient', 'Guest Pass No', 'Guest Full Name', 'Mobile Number', 'Email', 'Social Media', 'Registered At']
         ];
         allInvites.forEach(i => {
           rows.push([
@@ -814,6 +818,7 @@
             i.guest?.name || '',
             i.guest?.mobile || '',
             i.guest?.email || '',
+            (i.guest?.social || []).join('; '),
             i.usedAt ? new Date(i.usedAt).toISOString() : ''
           ]);
         });

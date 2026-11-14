@@ -257,9 +257,209 @@
     finishOpen();
   }
 
+  /* ---------- Social Media Component & Platform Picker ---------- */
+  const SOCIAL_PLATFORMS = [
+    {
+      id: 'facebook',
+      name: 'Facebook',
+      placeholder: 'Profile link or name',
+      logoSvg: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none"><circle cx="12" cy="12" r="12" fill="#1877F2"/><path d="M15.12 12.88l.54-3.53h-3.39V7.06c0-.97.48-1.91 2-1.91h1.54V2.15s-1.39-.24-2.72-.24c-2.79 0-4.61 1.69-4.61 4.73v2.71H5.38v3.53h3.09V21.4c.62.1 1.26.15 1.9.15s1.28-.05 1.9-.15v-8.52h2.85z" fill="white"/></svg>'
+    },
+    {
+      id: 'instagram',
+      name: 'Instagram',
+      placeholder: '@username',
+      logoSvg: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none"><defs><radialGradient id="igG" cx="30%" cy="107%" r="150%"><stop offset="0%" stop-color="#fdf497"/><stop offset="5%" stop-color="#fdf497"/><stop offset="45%" stop-color="#fd5949"/><stop offset="60%" stop-color="#d6249f"/><stop offset="90%" stop-color="#285AEB"/></radialGradient></defs><rect width="24" height="24" rx="6.5" fill="url(#igG)"/><circle cx="12" cy="12" r="3.2" stroke="white" stroke-width="1.8" fill="none"/><rect x="4.5" y="4.5" width="15" height="15" rx="4" stroke="white" stroke-width="1.8" fill="none"/><circle cx="16.5" cy="7.5" r="1.1" fill="white"/></svg>'
+    },
+    {
+      id: 'whatsapp',
+      name: 'WhatsApp',
+      placeholder: '+63 9... / contact number',
+      logoSvg: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none"><circle cx="12" cy="12" r="12" fill="#25D366"/><path d="M17.5 14.4c-.3-.15-1.7-.85-2-1-.25-.1-.45-.15-.65.15-.2.3-.75 1-.9 1.2-.15.2-.35.2-.65.05-.3-.15-1.3-.5-2.45-1.55-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.45.15-.6.15-.15.3-.35.45-.5.15-.15.2-.3.3-.5.1-.2 0-.4-.05-.55-.1-.15-.65-1.6-.9-2.2-.25-.6-.5-.5-.65-.5H8c-.25 0-.6.1-.9.45-.35.35-1.2 1.15-1.2 2.8 0 1.65 1.25 3.25 1.4 3.45.2.2 2.45 3.75 5.95 5.25.85.35 1.5.6 2 .75.85.25 1.6.25 2.2.15.68-.1 2.08-.85 2.38-1.65.3-.85.3-1.55.2-1.7-.1-.15-.25-.25-.55-.4z" fill="white"/></svg>'
+    },
+    {
+      id: 'tiktok',
+      name: 'TikTok',
+      placeholder: '@username',
+      logoSvg: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none"><rect width="24" height="24" rx="6" fill="#000000"/><path d="M16.8 8.12a4.4 4.4 0 0 1-2.92-1.72V14.6a4.2 4.2 0 1 1-3.64-4.16v2.32a2.02 2.02 0 1 0 1.46 1.94V3.6h2.2a4.38 4.38 0 0 0 2.9 2.52v2Z" fill="#25F4EE"/><path d="M16.3 7.62a4.4 4.4 0 0 1-2.42-1.22V14.1a4.2 4.2 0 1 1-3.64-4.16v2.32a2.02 2.02 0 1 0 1.46 1.94V3.1h2.2a4.38 4.38 0 0 0 2.4 2.52v2Z" fill="#FE2C55"/><path d="M16.5 7.87a4.4 4.4 0 0 1-2.67-1.47V14.35a4.2 4.2 0 1 1-3.64-4.16v2.32a2.02 2.02 0 1 0 1.46 1.94V3.35h2.2a4.38 4.38 0 0 0 2.65 2.52v2Z" fill="#FFFFFF"/></svg>'
+    },
+    {
+      id: 'messenger',
+      name: 'Messenger',
+      placeholder: 'm.me/username or name',
+      logoSvg: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none"><defs><linearGradient id="msgG" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00B2FE"/><stop offset="50%" stop-color="#006AFF"/><stop offset="100%" stop-color="#9B00E8"/></linearGradient></defs><circle cx="12" cy="12" r="12" fill="url(#msgG)"/><path d="M12 4.2C7.7 4.2 4.2 7.3 4.2 11.2c0 2.2 1.1 4.2 2.9 5.5v2.8l2.7-1.5c.7.2 1.4.3 2.2.3 4.3 0 7.8-3.1 7.8-7S16.3 4.2 12 4.2zm1.2 9.5l-2.1-2.2-4.1 2.2 4.5-4.8 2.2 2.2 4-2.2-4.5 4.8z" fill="white"/></svg>'
+    },
+    {
+      id: 'youtube',
+      name: 'YouTube',
+      placeholder: '@channel or link',
+      logoSvg: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none"><rect width="24" height="24" rx="6" fill="#FF0000"/><path d="M10 8.5L15.5 12L10 15.5V8.5Z" fill="white"/></svg>'
+    },
+    {
+      id: 'x',
+      name: 'X (Twitter)',
+      placeholder: '@username',
+      logoSvg: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none"><rect width="24" height="24" rx="6" fill="#000000"/><path d="M14.6 6H16.8L12 11.5 17.6 18H13.2L9.8 13.5 5.8 18H3.6L8.7 12.2 3.4 6H7.9L11 10.1 14.6 6ZM13.8 16.7H15L7.2 7.2H5.9L13.8 16.7Z" fill="white"/></svg>'
+    },
+    {
+      id: 'telegram',
+      name: 'Telegram',
+      placeholder: '@username',
+      logoSvg: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none"><circle cx="12" cy="12" r="12" fill="#2AABEE"/><path d="M5.5 11.8l10.8-4.4c.5-.2 1 .1.8.7l-1.8 8.6c-.1.6-.5.7-1 .4l-2.8-2.1-1.3 1.3c-.2.2-.3.3-.6.3l.2-2.8 5.1-4.6c.2-.2 0-.3-.3-.1l-6.3 4-2.7-.9c-.6-.2-.6-.6.1-.8z" fill="white"/></svg>'
+    },
+    {
+      id: 'linkedin',
+      name: 'LinkedIn',
+      placeholder: 'Profile link or name',
+      logoSvg: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none"><rect width="24" height="24" rx="6" fill="#0A66C2"/><path d="M7.8 9.5H5.2V18h2.6V9.5zM6.5 6a1.4 1.4 0 100 2.8 1.4 1.4 0 000-2.8zM18.8 12.8c0-2.6-1.4-3.8-3.3-3.8-1.5 0-2.2.8-2.6 1.4V9.5h-2.6c.03.7 0 8.5 0 8.5h2.6v-4.7c0-.25.02-.5.1-.7.2-.5.7-1 1.5-1 1.1 0 1.5.8 1.5 2v4.4H18.8v-5.2z" fill="white"/></svg>'
+    },
+    {
+      id: 'other',
+      name: 'Other',
+      placeholder: '@username or URL',
+      logoSvg: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none"><rect width="24" height="24" rx="6" fill="#8C6D3F"/><circle cx="12" cy="12" r="7" stroke="white" stroke-width="1.4" fill="none"/><path d="M5 12h14M12 5c2 2 3 5 3 7s-1 5-3 7c-2-2-3-5-3-7s1-5 3-7z" stroke="white" stroke-width="1.4" fill="none"/></svg>'
+    }
+  ];
+
+  const socialModal = $('#socialModal');
+  const platformGrid = $('#platformGrid');
+  const socialList = $('#socialList');
+  const socialEmptyWrap = $('#socialEmptyWrap');
+  const socialAddMoreBtn = $('#socialAddMoreBtn');
+  const addSocialCircle = $('#addSocialCircle');
+  const MAX_SOCIAL_ACCOUNTS = 5;
+
+  function renderPlatformGrid() {
+    if (!platformGrid || platformGrid.children.length > 0) return;
+    platformGrid.innerHTML = SOCIAL_PLATFORMS.map(p => `
+      <button type="button" class="platform-btn" data-platform-id="${p.id}">
+        <span class="platform-logo">${p.logoSvg}</span>
+        <span class="platform-name">${p.name}</span>
+      </button>
+    `).join('');
+  }
+
+  function openSocialPicker() {
+    renderPlatformGrid();
+    if (!socialModal) return;
+    socialModal.style.display = 'flex';
+    requestAnimationFrame(() => {
+      socialModal.classList.add('is-active');
+    });
+  }
+
+  function closeSocialPicker() {
+    if (!socialModal) return;
+    socialModal.classList.remove('is-active');
+    setTimeout(() => {
+      if (!socialModal.classList.contains('is-active')) {
+        socialModal.style.display = 'none';
+      }
+    }, 280);
+  }
+
+  function updateSocialVisibility() {
+    const count = socialList ? socialList.children.length : 0;
+    if (socialEmptyWrap) {
+      socialEmptyWrap.style.display = count === 0 ? 'block' : 'none';
+    }
+    if (socialAddMoreBtn) {
+      socialAddMoreBtn.style.display = (count > 0 && count < MAX_SOCIAL_ACCOUNTS) ? 'inline-flex' : 'none';
+    }
+    if (addSocialCircle) {
+      addSocialCircle.disabled = count >= MAX_SOCIAL_ACCOUNTS;
+      addSocialCircle.title = count >= MAX_SOCIAL_ACCOUNTS ? 'Maximum accounts reached' : 'Add social media account';
+    }
+  }
+
+  function addSocialAccount(platformId) {
+    const platform = SOCIAL_PLATFORMS.find(p => p.id === platformId) || SOCIAL_PLATFORMS[0];
+    if (!socialList) return;
+    if (socialList.children.length >= MAX_SOCIAL_ACCOUNTS) return;
+
+    const row = document.createElement('div');
+    row.className = 'social-input-row';
+    row.dataset.platform = platform.name;
+
+    row.innerHTML = `
+      <div class="social-input-box">
+        <div class="social-box-left" title="${platform.name}">
+          <span class="social-logo-wrap">${platform.logoSvg}</span>
+          <span class="social-platform-label">${platform.name}</span>
+        </div>
+        <div class="social-box-divider"></div>
+        <input type="text" class="social-inner-input" placeholder="${platform.placeholder}" autocomplete="off" spellcheck="false">
+        <button type="button" class="social-row-remove" aria-label="Remove ${platform.name} account" title="Remove account">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+    `;
+
+    const removeBtn = row.querySelector('.social-row-remove');
+    removeBtn.addEventListener('click', () => {
+      row.classList.add('removing');
+      setTimeout(() => {
+        row.remove();
+        updateSocialVisibility();
+      }, 230);
+    });
+
+    socialList.appendChild(row);
+    updateSocialVisibility();
+
+    const input = row.querySelector('.social-inner-input');
+    if (input) {
+      setTimeout(() => input.focus(), 60);
+    }
+  }
+
+  function resetSocialAccounts() {
+    if (socialList) socialList.innerHTML = '';
+    updateSocialVisibility();
+  }
+
+  if (socialModal) {
+    socialModal.addEventListener('click', e => {
+      if (e.target === socialModal) closeSocialPicker();
+    });
+    const closeBtn = $('#socialModalClose');
+    if (closeBtn) closeBtn.addEventListener('click', closeSocialPicker);
+
+    if (platformGrid) {
+      platformGrid.addEventListener('click', e => {
+        const btn = e.target.closest('.platform-btn');
+        if (btn && btn.dataset.platformId) {
+          addSocialAccount(btn.dataset.platformId);
+          closeSocialPicker();
+        }
+      });
+    }
+  }
+
+  if (addSocialCircle) {
+    addSocialCircle.addEventListener('click', e => {
+      e.preventDefault();
+      openSocialPicker();
+    });
+  }
+
+  const socialEmptyTrigger = $('#socialEmptyTrigger');
+  if (socialEmptyTrigger) {
+    socialEmptyTrigger.addEventListener('click', e => {
+      e.preventDefault();
+      openSocialPicker();
+    });
+  }
+
+  if (socialAddMoreBtn) {
+    socialAddMoreBtn.addEventListener('click', e => {
+      e.preventDefault();
+      openSocialPicker();
+    });
+  }
+
   /* ---------- RSVP + form ---------- */
   const form = $('#guestForm');
-  const extra = $('#socialExtra');
   const rules = {
     first: v => v.trim().length > 0,
     last: v => v.trim().length > 0,
@@ -325,7 +525,16 @@
     }
 
     const data = Object.fromEntries(new FormData(form));
-    data.social = $$('input[name="social"]', form).map(i => i.value.trim()).filter(Boolean);
+    // Collect all dynamic social media accounts formatted nicely: "Platform: username"
+    const socialRows = $$('.social-input-row', form);
+    data.social = socialRows.map(row => {
+      const platformName = row.dataset.platform || 'Social';
+      const input = row.querySelector('.social-inner-input');
+      const val = input ? input.value.trim() : '';
+      if (!val) return null;
+      return `${platformName}: ${val}`;
+    }).filter(Boolean);
+
     data.response = 'accepted';
 
     const serverRes = await submitRSVP(data);
@@ -380,6 +589,7 @@
     }
 
     form.reset();
+    resetSocialAccounts();
 
     const badge = $('#passBadge'); if (badge) badge.innerHTML = '✓&nbsp; REGISTRATION COMPLETE';
     const headline = $('#passHeadline'); if (headline) headline.innerHTML = 'You’re on the<br>guest list!';
@@ -538,10 +748,10 @@
       window.scrollBy({ top: window.innerHeight * 0.82, behavior: 'smooth' });
     },
     addSocial: () => {
-      if (extra.children.length >= 2) return;
-      const i = document.createElement('input');
-      i.name = 'social'; i.placeholder = 'e.g. @username';
-      extra.appendChild(i); i.focus();
+      openSocialPicker();
+    },
+    openSocialPicker: () => {
+      openSocialPicker();
     }
   };
   document.addEventListener('click', e => {

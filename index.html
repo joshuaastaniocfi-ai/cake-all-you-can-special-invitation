@@ -281,11 +281,30 @@
             placeholder="e.g. +63 917 123 4567" autocomplete="tel" required>
           <p class="err">Enter a valid mobile number</p>
         </div>
-        <div class="field"><label for="social">Social Media Accounts</label>
-          <div class="social"><input id="social" name="social" placeholder="e.g. @username"><button type="button"
-              class="add" id="addSocial" data-action="addSocial" aria-label="Add another account"><img
-                src="assets/icon-plus.svg" alt="" width="23" height="23"></button></div>
-          <div class="social-extra" id="socialExtra"></div>
+        <div class="field social-field-wrap">
+          <div class="social-header">
+            <label for="socialEmptyTrigger">Social Media Accounts <span class="opt-text">(Optional)</span></label>
+            <button type="button" class="add-circle-btn" id="addSocialCircle" data-action="openSocialPicker" aria-label="Add social media account" title="Add social media account">
+              <img src="assets/icon-plus.svg" alt="" width="23" height="23">
+            </button>
+          </div>
+          
+          <!-- Empty State (Shown by default when no accounts are added) -->
+          <div class="social-empty-wrap" id="socialEmptyWrap">
+            <button type="button" class="social-empty-trigger" id="socialEmptyTrigger" data-action="openSocialPicker">
+              <span class="trigger-plus-icon"><img src="assets/icon-plus.svg" alt="" width="18" height="18"></span>
+              <span class="trigger-text">Add social media account</span>
+            </button>
+          </div>
+
+          <!-- Dynamic Social Media Inputs with platform logo on the left -->
+          <div class="social-list" id="socialList"></div>
+
+          <!-- Add more account button (visible when at least 1 account is added, up to 5) -->
+          <button type="button" class="social-add-more-btn" id="socialAddMoreBtn" data-action="openSocialPicker" style="display:none">
+            <img src="assets/icon-plus.svg" alt="" width="16" height="16">
+            <span>Add another social account</span>
+          </button>
         </div>
         <div class="field"><label for="address">Address</label><textarea id="address" name="address"
             placeholder="e.g. 1234 Street, Barangay San Jose, Tacloban City"></textarea></div>
@@ -406,6 +425,20 @@
   <button type="button" class="arrow is-hidden" id="scrollDown" data-action="scrollDown" aria-label="Scroll down">
     <img src="assets/icon-arrow-down.svg" alt="">
   </button>
+
+  <!-- Social Media Platform Picker Modal -->
+  <div id="socialModal" class="social-modal-overlay" style="display:none" role="dialog" aria-modal="true" aria-labelledby="socialModalTitle">
+    <div class="social-modal-card">
+      <button type="button" class="social-modal-close" id="socialModalClose" aria-label="Close platform selection">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+      <p class="social-modal-eyebrow">GOLDILOCKS &bull; CONNECT</p>
+      <h3 id="socialModalTitle" class="social-modal-title serif">Select Platform</h3>
+      <p class="social-modal-sub">Choose a social media account to connect with us</p>
+
+      <div class="platform-grid" id="platformGrid"></div>
+    </div>
+  </div>
 
   <!-- Message Box Modal for Invalid Link / Base URL without code -->
   <div id="msgBoxModal" class="msg-box-overlay" style="display:none" role="dialog" aria-modal="true" aria-labelledby="msgBoxTitle">
