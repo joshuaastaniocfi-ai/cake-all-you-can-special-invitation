@@ -17,6 +17,7 @@
   let isLinkValid = true;
   let invalidLinkReason = 'This link is not valid for registration. An official personal invitation link with a unique invitation code is required to RSVP.';
   let inviteCode = '';
+  let sessionVerified = false;
 
   // Track unique invitation code ONLY from the URL query parameter (?code=... or ?invite=...)
   function getActiveInviteCode() {
@@ -182,11 +183,14 @@
   const screens = $$('.screen');
   function show(id) {
     if ((!isLinkValid || !inviteCode) && (id === 'form' || id === 'confirm')) {
-      showMsgBox(invalidLinkReason);
+      showMsgBox(invalidLinkReason, 'Invitation Required');
       return;
     }
     if (isInviteUsed && (id === 'form' || id === 'confirm')) {
-      id = 'pass';
+      id = sessionVerified ? 'pass' : 'alreadyUsed';
+    }
+    if (isInviteUsed && id === 'pass' && !sessionVerified) {
+      id = 'alreadyUsed';
     }
     screens.forEach(s => { s.hidden = s.id !== id; });
     window.scrollTo(0, 0);
@@ -357,6 +361,7 @@
 
     // Mark as permanently used on client to lock the link from re-use
     isInviteUsed = true;
+    sessionVerified = true;
 
     let num;
     if (serverRes && serverRes.no) {
@@ -401,7 +406,7 @@
       const submitBtn = $('#claimSubmitBtn');
 
       if (!nameInput.value.trim() || !mobileInput.value.trim()) {
-        errEl.textContent = 'Please enter both your full name and mobile number.';
+        errEl.textContent = 'Please enter both your full name and contact number.';
         errEl.style.display = 'block';
         return;
       }
@@ -422,6 +427,7 @@
         });
         const data = await res.json();
         if (data.ok && data.pass) {
+          sessionVerified = true;
           const p = data.pass;
           const badge = $('#passBadge'); if (badge) badge.innerHTML = '✓&nbsp; VERIFIED GUEST PASS';
           const headline = $('#passHeadline'); if (headline) headline.innerHTML = 'Your Special<br>Guest Pass';
@@ -437,7 +443,7 @@
           }
           show('pass');
         } else {
-          errEl.textContent = data.error || 'Name or mobile number does not match this invitation.';
+          errEl.textContent = data.error || 'Name or contact number does not match this invitation.';
           errEl.style.display = 'block';
         }
       } catch (err) {
@@ -445,7 +451,7 @@
         errEl.style.display = 'block';
       } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = 'View Existing Guest Pass';
+        submitBtn.textContent = 'Verify & View Pass';
       }
     });
   }
@@ -453,40 +459,60 @@
   /* ---------- every button, through one delegated handler ---------- */
   const actions = {
     viewPass: () => {
-      show('pass');
+      if (!isLinkValid || !inviteCode) {
+        showMsgBox(invalidLinkReason, 'Invitation Required');
+        return;
+      }
+      if (sessionVerified) {
+        show('pass');
+      } else {
+        show('alreadyUsed');
+      }
     },
     open: () => {
       openEnvelope();
     },
     respond: () => {
       if (!isLinkValid || !inviteCode) {
-        showMsgBox(invalidLinkReason);
+        showMsgBox(invalidLinkReason, 'Invitation Required');
         return;
       }
       if (isInviteUsed) {
-        show('pass');
+        if (sessionVerified) {
+          show('pass');
+        } else {
+          show('alreadyUsed');
+        }
         return;
       }
       show('confirm');
     },
     accept: () => {
       if (!isLinkValid || !inviteCode) {
-        showMsgBox(invalidLinkReason);
+        showMsgBox(invalidLinkReason, 'Invitation Required');
         return;
       }
       if (isInviteUsed) {
-        show('pass');
+        if (sessionVerified) {
+          show('pass');
+        } else {
+          show('alreadyUsed');
+        }
         return;
       }
       show('form');
     },
     decline: () => {
       if (!isLinkValid || !inviteCode) {
-        showMsgBox(invalidLinkReason);
+        showMsgBox(invalidLinkReason, 'Invitation Required');
         return;
       }
       if (isInviteUsed) {
-        show('pass');
+        if (sessionVerified) {
+          show('pass');
+        } else {
+          show('alreadyUsed');
+        }
         return;
       }
       fetch('/api/rsvp/decline', {
@@ -565,13 +591,6 @@
       return;
     }
 
-    // Check localStorage in case this browser already registered
-    const savedRsvp = store.get('gl-rsvp');
-    if (savedRsvp && savedRsvp.response === 'accepted') {
-      const savedName = savedRsvp.name || `${savedRsvp.first || ''} ${savedRsvp.last || ''}`.trim();
-      populatePass(savedName, savedRsvp.no);
-    }
-
     try {
       let res = await fetch(`/api/invite/verify?code=${encodeURIComponent(activeCode)}`);
       let data = await res.json();
@@ -586,9 +605,6 @@
         isLinkValid = true;
         if (data.status === 'used') {
           isInviteUsed = true;
-          if (data.guest) {
-            populatePass(data.guest.name, data.guest.no);
-          }
           const passBack = $('#pass .back');
           if (passBack) {
             passBack.dataset.go = 'invite';
@@ -621,9 +637,15 @@
         show('invite');
         return;
       }
-      if (isInviteUsed && (startId === 'form' || startId === 'confirm')) {
+      if (isInviteUsed) {
         opened = true; envelope.hidden = true; html.classList.remove('locked');
-        show('invite');
+        if (startId === 'pass' && !sessionVerified) {
+          show('alreadyUsed');
+        } else if (startId === 'form' || startId === 'confirm') {
+          show('invite');
+        } else {
+          show(startId);
+        }
         return;
       }
       // deep link – skip the envelope

@@ -365,36 +365,32 @@
 
     <!-- ============ 7 · INVITATION LINK ALREADY USED ============ -->
     <section class="screen" id="alreadyUsed" hidden data-decor data-dy="260px" data-flower="-577px" style="height:1259px"
-      aria-label="Invitation link used">
+      aria-label="Invitation pass verification">
+      <button type="button" class="back" data-go="invite"><img src="assets/icon-back.svg" alt="">Invitation</button>
       <img class="logo" src="assets/logo.png" alt="Goldilocks" style="top:52px">
-      <h1 class="headline serif" style="top:107px;font-size:36px;line-height:1.1">This invitation link<br>has been used.</h1>
+      <h1 class="headline serif" style="top:107px;font-size:36px;line-height:1.1">Verify Your<br>Guest Pass</h1>
       
       <div class="card" style="top:220px;height:550px">
-        <p class="t eyebrow" style="left:24px;top:26px">NOTICE</p>
-        <h2 class="t serif" style="left:24px;top:56px;font-size:26px;line-height:1.15">Invitation Already Registered</h2>
+        <p class="t eyebrow" style="left:24px;top:26px">VERIFICATION REQUIRED</p>
+        <h2 class="t serif" style="left:24px;top:56px;font-size:26px;line-height:1.15">View Your VIP Pass</h2>
         <p class="t" style="left:24px;top:95px;font-size:12px;line-height:1.5;color:var(--muted)">
-          Each invitation link is unique and can only be used to register once. This link was already completed.
+          This invitation has already been registered. Please enter your registered Full Name and Contact Number to access your pass.
         </p>
 
         <div class="divider" style="top:150px"></div>
 
-        <p class="t eyebrow" style="left:24px;top:170px">ALREADY REGISTERED?</p>
-        <p class="t" style="left:24px;top:196px;font-size:12px;line-height:1.45;color:var(--brown-800)">
-          Enter your name and mobile number to verify and view your <strong>VIP Guest Pass</strong>:
-        </p>
-
-        <form id="claimPassForm" style="position:absolute;left:24px;top:246px;width:306px" novalidate>
+        <form id="claimPassForm" style="position:absolute;left:24px;top:175px;width:306px" novalidate>
           <div class="field" style="margin-bottom:12px">
             <label for="claimName">Full Name *</label>
             <input id="claimName" name="claimName" placeholder="e.g. Juan Dela Cruz" required>
           </div>
           <div class="field" style="margin-bottom:16px">
-            <label for="claimMobile">Mobile Number *</label>
-            <input id="claimMobile" name="claimMobile" type="tel" placeholder="e.g. +63 917 123 4567" required>
+            <label for="claimMobile">Contact Number *</label>
+            <input id="claimMobile" name="claimMobile" type="tel" placeholder="e.g. 09171234567" required>
           </div>
           <p id="claimError" style="display:none;color:#b22222;font-size:11px;font-weight:600;margin-bottom:12px;text-align:center;line-height:1.4"></p>
           <button type="submit" class="btn primary abs" id="claimSubmitBtn"
-            style="position:relative;width:100%;height:50px;font-size:13px;line-height:50px">View Existing Guest Pass</button>
+            style="position:relative;width:100%;height:50px;font-size:14px;line-height:50px">Verify &amp; View Pass</button>
         </form>
       </div>
 

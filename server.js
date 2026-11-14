@@ -181,32 +181,13 @@ apiRouter.get('/invite/verify', async (req, res) => {
         return res.status(404).json({ ok: false, error: 'not_found', message: 'Invitation link does not exist.' });
       }
 
-      let guestInfo = null;
-      if (invite.status === 'used') {
-        if (invite.guest && (invite.guest.name || invite.guest.first)) {
-          guestInfo = {
-            name: invite.guest.name || `${invite.guest.first || ''} ${invite.guest.last || ''}`.trim() || invite.recipientName || 'Valued Guest',
-            no: invite.guest.guestNo || '001'
-          };
-        } else {
-          const r = await RSVP.findOne({ inviteCode: code, response: 'accepted' });
-          if (r) {
-            guestInfo = {
-              name: r.name || `${r.first || ''} ${r.last || ''}`.trim() || invite.recipientName || 'Valued Guest',
-              no: r.guestNo || '001'
-            };
-          }
-        }
-      }
-
       return res.json({
         ok: true,
         code: invite.code,
         status: invite.status,
         recipientName: invite.recipientName || '',
         usedAt: invite.usedAt || null,
-        guestRegistered: invite.status === 'used',
-        guest: guestInfo
+        guestRegistered: invite.status === 'used'
       });
     } else {
       return res.status(503).json({ ok: false, error: 'db_connecting', message: 'Database connection in progress.' });
@@ -231,27 +212,34 @@ apiRouter.post('/invite/claim-pass', async (req, res) => {
     let invite = null;
     if (mongoose.connection.readyState === 1) {
       invite = await Invite.findOne({ code });
-    } else {
-      invite = memoryInvites.get(code);
     }
 
     if (!invite) {
       return res.status(404).json({ ok: false, error: 'Invitation not found.' });
     }
 
-    if (invite.status !== 'used' || !invite.guest) {
+    if (invite.status !== 'used') {
       return res.status(400).json({ ok: false, error: 'This invitation has not been registered yet.' });
+    }
+
+    let guestRecord = invite.guest;
+    if (!guestRecord || (!guestRecord.mobile && !guestRecord.name)) {
+      guestRecord = await RSVP.findOne({ inviteCode: code, response: 'accepted' });
+    }
+
+    if (!guestRecord) {
+      return res.status(400).json({ ok: false, error: 'Registered guest details not found.' });
     }
 
     // Check full name and mobile
     const inputNameNorm = normalizeName(fullName);
-    const guestNameNorm = normalizeName(invite.guest.name || `${invite.guest.first} ${invite.guest.last}`);
+    const guestNameNorm = normalizeName(guestRecord.name || `${guestRecord.first || ''} ${guestRecord.last || ''}`);
     const inputPhoneNorm = normalizePhone(mobile);
-    const guestPhoneNorm = normalizePhone(invite.guest.mobile);
+    const guestPhoneNorm = normalizePhone(guestRecord.mobile);
 
     const nameMatches = inputNameNorm === guestNameNorm ||
-      (guestNameNorm.includes(inputNameNorm) && inputNameNorm.length >= 4) ||
-      (inputNameNorm.includes(guestNameNorm) && guestNameNorm.length >= 4);
+      (guestNameNorm.includes(inputNameNorm) && inputNameNorm.length >= 3) ||
+      (inputNameNorm.includes(guestNameNorm) && guestNameNorm.length >= 3);
 
     const phoneMatches = inputPhoneNorm === guestPhoneNorm ||
       (inputPhoneNorm.length >= 7 && guestPhoneNorm.endsWith(inputPhoneNorm)) ||
@@ -260,7 +248,7 @@ apiRouter.post('/invite/claim-pass', async (req, res) => {
     if (!nameMatches || !phoneMatches) {
       return res.status(401).json({
         ok: false,
-        error: 'The entered Full Name or Mobile Number does not match the registered guest for this invitation.'
+        error: 'The entered Full Name or Contact Number does not match the registered guest for this invitation.'
       });
     }
 
@@ -268,13 +256,13 @@ apiRouter.post('/invite/claim-pass', async (req, res) => {
     return res.json({
       ok: true,
       pass: {
-        name: invite.guest.name || `${invite.guest.first} ${invite.guest.last}`,
-        first: invite.guest.first,
-        last: invite.guest.last,
-        no: invite.guest.guestNo,
+        name: guestRecord.name || `${guestRecord.first || ''} ${guestRecord.last || ''}`.trim(),
+        first: guestRecord.first,
+        last: guestRecord.last,
+        no: guestRecord.guestNo || '001',
         code: invite.code,
-        email: invite.guest.email,
-        mobile: invite.guest.mobile
+        email: guestRecord.email,
+        mobile: guestRecord.mobile
       }
     });
   } catch (err) {
