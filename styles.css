@@ -196,6 +196,73 @@ body[data-bg="gold"] .ambient-overlay {
 .card{position:absolute;left:24px;width:354px;background:rgba(255,254,248,.9);border:1.5px solid rgba(255,255,255,.95);border-radius:26px;box-shadow:0 12px 32px rgba(128,83,28,.1)}
 .card .t{width:306px}
 
+/* ---------- pinned paper note with wind breeze flutter ---------- */
+.pinned-paper-container {
+  position: absolute;
+  left: 0;
+  top: 1357.48px;
+  width: 402px;
+  height: 326.251px;
+  perspective: 900px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.pinned-paper-sheet {
+  position: absolute;
+  inset: 0;
+  transform-origin: 193px 39.52px;
+  transform-style: preserve-3d;
+  will-change: transform;
+  transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+  transform: perspective(900px) rotateZ(0deg) rotateX(0deg) rotateY(0deg);
+}
+
+.pinned-paper-container:hover .pinned-paper-sheet,
+.pinned-paper-sheet.is-wind-flutter {
+  animation: paperWindBreeze 2.8s cubic-bezier(0.37, 0, 0.63, 1) infinite;
+}
+
+.pinned-paper-pin {
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+@keyframes paperWindBreeze {
+  0% {
+    transform: perspective(900px) rotateZ(0deg) rotateX(0deg) rotateY(0deg);
+  }
+  14% {
+    /* Soft wind breeze catches bottom and sways right, lifting bottom edge in 3D */
+    transform: perspective(900px) rotateZ(1.9deg) rotateX(2.2deg) rotateY(-1deg);
+  }
+  30% {
+    /* Natural pendulum swing back to left */
+    transform: perspective(900px) rotateZ(-1.4deg) rotateX(1.1deg) rotateY(0.9deg);
+  }
+  46% {
+    /* Gentle rebound right */
+    transform: perspective(900px) rotateZ(1deg) rotateX(1.6deg) rotateY(-0.5deg);
+  }
+  62% {
+    /* Damped return left */
+    transform: perspective(900px) rotateZ(-0.5deg) rotateX(0.7deg) rotateY(0.3deg);
+  }
+  78% {
+    /* Micro settling */
+    transform: perspective(900px) rotateZ(0.25deg) rotateX(0.25deg) rotateY(-0.15deg);
+  }
+  90% {
+    /* Settling to calm */
+    transform: perspective(900px) rotateZ(-0.08deg) rotateX(0.08deg) rotateY(0.05deg);
+  }
+  100% {
+    transform: perspective(900px) rotateZ(0deg) rotateX(0deg) rotateY(0deg);
+  }
+}
+
 /* ---------- 1. envelope ---------- */
 .envelope{position:fixed;inset:0;z-index:50;overflow:hidden;touch-action:manipulation;cursor:pointer}
 .envelope[hidden]{display:none}

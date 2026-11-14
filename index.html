@@ -175,35 +175,40 @@
         </div>
       </div>
 
-      <!-- venue card (pinned paper) -->
-      <div class="w" style="left:4.84px;top:1357.48px;width:407.493px;height:326.251px">
-        <div class="r" style="width:382px;height:292px;rotate:-5.33deg">
-          <div class="crop"><img src="assets/paper.png" alt=""
-              style="height:185.28%;left:-.02%;top:-64.15%;width:100.04%"></div>
+      <!-- venue card (pinned paper) with wind breeze animation -->
+      <div class="pinned-paper-container" id="pinnedPaperContainer">
+        <div class="pinned-paper-sheet" id="pinnedPaperSheet">
+          <div class="w" style="left:4.84px;top:0;width:407.493px;height:326.251px">
+            <div class="r" style="width:382px;height:292px;rotate:-5.33deg">
+              <div class="crop"><img src="assets/paper.png" alt=""
+                  style="height:185.28%;left:-.02%;top:-64.15%;width:100.04%"></div>
+            </div>
+          </div>
+          <div class="w" style="left:130.85px;top:47.52px;width:164.239px;height:108.752px">
+            <div class="r" style="width:158.178px;height:98.717px;rotate:-3.71deg">
+              <div class="crop"><img src="assets/title-art.png" alt=""
+                  style="height:200.27%;left:-2.92%;top:9.5%;width:100%"></div>
+            </div>
+          </div>
+          <img class="abs" src="assets/icon-vector.svg" alt=""
+            style="left:199.85px;top:145.29px;width:21.294px;height:26.367px;rotate:-5.33deg">
+          <div class="w" style="left:100.85px;top:164.52px;width:227.084px;height:74.81px">
+            <p class="serif"
+              style="width:235px;rotate:-5.33deg;font-family:var(--serif);font-weight:700;font-size:12px;line-height:1.35;letter-spacing:-.2px;text-align:center;color:#512800">
+              Level 1, Expansion Activity Area, Robinsons<br>Marasbaras Tacloban</p>
+          </div>
+          <img class="abs" src="assets/icon-calendar.svg" alt=""
+            style="left:208.7px;top:217.6px;width:18.717px;height:20.907px;rotate:-5.33deg">
+          <div class="w" style="left:96.85px;top:231.27px;width:245px;height:40.397px">
+            <p class="serif"
+              style="width:245px;rotate:-5.33deg;font-family:var(--serif);font-weight:700;font-size:12px;line-height:1.2;letter-spacing:-.2px;text-align:center;color:#512800;white-space:nowrap">
+              November 30, 2026 3:00 PM - 8:00 PM</p>
+          </div>
         </div>
+        <!-- Static red push pin pinned through the paper (stays completely stationary) -->
+        <img class="abs pinned-paper-pin" src="assets/pin-red.png" alt="Push pin"
+          style="left:177px;top:23.52px;width:32px;height:33px;object-fit:contain;z-index:5;pointer-events:none">
       </div>
-      <div class="w" style="left:130.85px;top:1405px;width:164.239px;height:108.752px">
-        <div class="r" style="width:158.178px;height:98.717px;rotate:-3.71deg">
-          <div class="crop"><img src="assets/title-art.png" alt=""
-              style="height:200.27%;left:-2.92%;top:9.5%;width:100%"></div>
-        </div>
-      </div>
-      <img class="abs" src="assets/icon-vector.svg" alt=""
-        style="left:199.85px;top:1502.77px;width:21.294px;height:26.367px;rotate:-5.33deg">
-      <div class="w" style="left:100.85px;top:1522px;width:227.084px;height:74.81px">
-        <p class="serif"
-          style="width:235px;rotate:-5.33deg;font-family:var(--serif);font-weight:700;font-size:12px;line-height:1.35;letter-spacing:-.2px;text-align:center;color:#512800">
-          Level 1, Expansion Activity Area, Robinsons<br>Marasbaras Tacloban</p>
-      </div>
-      <img class="abs" src="assets/icon-calendar.svg" alt=""
-        style="left:208.7px;top:1575.08px;width:18.717px;height:20.907px;rotate:-5.33deg">
-      <div class="w" style="left:96.85px;top:1588.75px;width:245px;height:40.397px">
-        <p class="serif"
-          style="width:245px;rotate:-5.33deg;font-family:var(--serif);font-weight:700;font-size:12px;line-height:1.2;letter-spacing:-.2px;text-align:center;color:#512800;white-space:nowrap">
-          November 30, 2026 3:00 PM - 8:00 PM</p>
-      </div>
-      <img class="abs" src="assets/pin-red.png" alt="Push pin"
-        style="left:177px;top:1381px;width:32px;height:33px;object-fit:contain;z-index:2">
 
       <!-- special guest -->
       <img class="abs" src="assets/gift.png" alt=""

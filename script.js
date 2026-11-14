@@ -1224,6 +1224,22 @@
     });
   }
 
+  /* ---------- Pinned paper note wind breeze flutter on touch ---------- */
+  const paperContainer = $('#pinnedPaperContainer');
+  const paperSheet = $('#pinnedPaperSheet');
+  if (paperContainer && paperSheet) {
+    let windTimer = null;
+    const triggerPaperWind = () => {
+      paperSheet.classList.add('is-wind-flutter');
+      clearTimeout(windTimer);
+      windTimer = setTimeout(() => {
+        paperSheet.classList.remove('is-wind-flutter');
+      }, 2800);
+    };
+    paperContainer.addEventListener('touchstart', triggerPaperWind, { passive: true });
+    paperContainer.addEventListener('click', triggerPaperWind);
+  }
+
   /* ---------- start ---------- */
   async function initInvitation() {
     const activeCode = getActiveInviteCode();
