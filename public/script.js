@@ -321,39 +321,51 @@
     }
   ];
 
-  const socialModal = $('#socialModal');
-  const platformGrid = $('#platformGrid');
+  const socialDropdownPanel = $('#socialDropdownPanel');
+  const socialDropdownGrid = $('#socialDropdownGrid');
   const socialList = $('#socialList');
   const addSocialCircle = $('#addSocialCircle');
   const MAX_SOCIAL_ACCOUNTS = 6;
+  let isDropdownOpen = false;
 
-  function renderPlatformGrid() {
-    if (!platformGrid || platformGrid.children.length > 0) return;
-    platformGrid.innerHTML = SOCIAL_PLATFORMS.map(p => `
-      <button type="button" class="platform-btn" data-platform-id="${p.id}">
-        <span class="platform-logo">${p.logoSvg}</span>
-        <span class="platform-name">${p.name}</span>
+  function renderSocialDropdown() {
+    if (!socialDropdownGrid || socialDropdownGrid.children.length > 0) return;
+    socialDropdownGrid.innerHTML = SOCIAL_PLATFORMS.map(p => `
+      <button type="button" class="social-drop-item" data-platform-id="${p.id}" title="${p.name}" aria-label="${p.name}">
+        ${p.logoSvg}
       </button>
     `).join('');
   }
 
-  function openSocialPicker() {
-    renderPlatformGrid();
-    if (!socialModal) return;
-    socialModal.style.display = 'flex';
+  function openSocialDropdown() {
+    renderSocialDropdown();
+    if (!socialDropdownPanel) return;
+    isDropdownOpen = true;
+    socialDropdownPanel.style.display = 'block';
+    if (addSocialCircle) addSocialCircle.classList.add('is-open');
     requestAnimationFrame(() => {
-      socialModal.classList.add('is-active');
+      socialDropdownPanel.classList.add('is-active');
     });
   }
 
-  function closeSocialPicker() {
-    if (!socialModal) return;
-    socialModal.classList.remove('is-active');
+  function closeSocialDropdown() {
+    if (!socialDropdownPanel || !isDropdownOpen) return;
+    isDropdownOpen = false;
+    if (addSocialCircle) addSocialCircle.classList.remove('is-open');
+    socialDropdownPanel.classList.remove('is-active');
     setTimeout(() => {
-      if (!socialModal.classList.contains('is-active')) {
-        socialModal.style.display = 'none';
+      if (!isDropdownOpen && socialDropdownPanel) {
+        socialDropdownPanel.style.display = 'none';
       }
     }, 280);
+  }
+
+  function toggleSocialDropdown() {
+    if (isDropdownOpen) {
+      closeSocialDropdown();
+    } else {
+      openSocialDropdown();
+    }
   }
 
   function updateSocialVisibility() {
@@ -399,6 +411,7 @@
 
     socialList.appendChild(row);
     updateSocialVisibility();
+    closeSocialDropdown();
 
     const input = row.querySelector('.social-inner-input');
     if (input) {
@@ -408,33 +421,32 @@
 
   function resetSocialAccounts() {
     if (socialList) socialList.innerHTML = '';
+    closeSocialDropdown();
     updateSocialVisibility();
   }
 
-  if (socialModal) {
-    socialModal.addEventListener('click', e => {
-      if (e.target === socialModal) closeSocialPicker();
+  if (socialDropdownGrid) {
+    socialDropdownGrid.addEventListener('click', e => {
+      const btn = e.target.closest('.social-drop-item');
+      if (btn && btn.dataset.platformId) {
+        addSocialAccount(btn.dataset.platformId);
+      }
     });
-    const closeBtn = $('#socialModalClose');
-    if (closeBtn) closeBtn.addEventListener('click', closeSocialPicker);
-
-    if (platformGrid) {
-      platformGrid.addEventListener('click', e => {
-        const btn = e.target.closest('.platform-btn');
-        if (btn && btn.dataset.platformId) {
-          addSocialAccount(btn.dataset.platformId);
-          closeSocialPicker();
-        }
-      });
-    }
   }
 
   if (addSocialCircle) {
     addSocialCircle.addEventListener('click', e => {
       e.preventDefault();
-      openSocialPicker();
+      toggleSocialDropdown();
     });
   }
+
+  document.addEventListener('click', e => {
+    if (!isDropdownOpen) return;
+    if (!e.target.closest('.social-field-wrap')) {
+      closeSocialDropdown();
+    }
+  });
 
   /* ---------- RSVP + form ---------- */
   const form = $('#guestForm');
