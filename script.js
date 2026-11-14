@@ -15,24 +15,27 @@
   let opened = false;
   let isInviteUsed = false;
   let isLinkValid = true;
-  let invalidLinkReason = 'This invitation link is not valid. Access to this celebration requires an official personal invitation link.';
+  let invalidLinkReason = 'This link is not valid for registration. An official personal invitation link with a unique invitation code is required to RSVP.';
   let inviteCode = '';
 
-  // Track unique invitation code from URL or session/local storage
+  // Track unique invitation code ONLY from the URL query parameter (?code=... or ?invite=...)
   function getActiveInviteCode() {
     const urlParams = new URLSearchParams(window.location.search);
-    const fromUrl = urlParams.get('code') || urlParams.get('invite');
-    const fromSession = sessionStorage.getItem('cayc_invite_code');
-    const fromLocal = localStorage.getItem('cayc_invite_code');
-    const code = (fromUrl || fromSession || fromLocal || inviteCode || '').trim().toUpperCase();
-    if (code) {
-      inviteCode = code;
-      sessionStorage.setItem('cayc_invite_code', code);
-      localStorage.setItem('cayc_invite_code', code);
+    const fromUrl = (urlParams.get('code') || urlParams.get('invite') || '').trim().toUpperCase();
+    if (fromUrl) {
+      inviteCode = fromUrl;
       const hiddenInput = $('#formInviteCode');
-      if (hiddenInput) hiddenInput.value = code;
+      if (hiddenInput) hiddenInput.value = fromUrl;
+      return fromUrl;
     }
-    return code;
+    // No code in URL: this link itself is strictly NOT valid for registration
+    inviteCode = '';
+    isLinkValid = false;
+    sessionStorage.removeItem('cayc_invite_code');
+    localStorage.removeItem('cayc_invite_code');
+    const hiddenInput = $('#formInviteCode');
+    if (hiddenInput) hiddenInput.value = '';
+    return '';
   }
   inviteCode = getActiveInviteCode();
 
@@ -103,7 +106,10 @@
     setRsvpVisible(isInviteActive);
 
     if (rsvpFixedBtn) {
-      if (isInviteUsed) {
+      if (!isLinkValid || !inviteCode) {
+        rsvpFixedBtn.textContent = 'Invitation Code Required';
+        rsvpFixedBtn.dataset.action = 'respond';
+      } else if (isInviteUsed) {
         rsvpFixedBtn.textContent = 'View Guest Pass';
         rsvpFixedBtn.dataset.action = 'viewPass';
       } else {
@@ -550,8 +556,8 @@
     const activeCode = getActiveInviteCode();
     if (!activeCode) {
       isLinkValid = false;
-      invalidLinkReason = 'This link is not valid. Access to this celebration requires an official personal invitation link.';
-      showMsgBox(invalidLinkReason);
+      invalidLinkReason = 'This link is not valid for registration. An official personal invitation link with a unique invitation code is required to RSVP.';
+      showMsgBox(invalidLinkReason, 'Invitation Required');
       show('invite');
       document.body.dataset.bg = 'gold';
       setArrowVisible(false);
@@ -595,8 +601,8 @@
         }
       } else if (data.error === 'not_found' || res.status === 404) {
         isLinkValid = false;
-        invalidLinkReason = 'This link is not valid. This invitation code was not found in the official guest list.';
-        showMsgBox(invalidLinkReason);
+        invalidLinkReason = 'This invitation code was not found in the official guest list. An official personal invitation link is required to RSVP.';
+        showMsgBox(invalidLinkReason, 'Invalid Link');
         show('invite');
         document.body.dataset.bg = 'gold';
         setArrowVisible(false);
@@ -610,6 +616,11 @@
     const startId = location.hash.slice(1);
     const startEl = startId && document.getElementById(startId);
     if (startEl && startEl.classList.contains('screen') && startId !== 'invite') {
+      if ((!isLinkValid || !inviteCode) && (startId === 'form' || startId === 'confirm')) {
+        showMsgBox(invalidLinkReason, 'Invitation Required');
+        show('invite');
+        return;
+      }
       if (isInviteUsed && (startId === 'form' || startId === 'confirm')) {
         opened = true; envelope.hidden = true; html.classList.remove('locked');
         show('invite');
