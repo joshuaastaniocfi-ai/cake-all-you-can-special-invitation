@@ -188,7 +188,7 @@ body[data-bg="gold"] .ambient-overlay {
 .btn:active{transform:scale(.98)}
 .btn.ghost{background:rgba(255,253,245,.7);border:1px solid rgba(173,128,66,.5);color:var(--brown-800)}
 .btn.ghost:hover{background:#fff}
-.logo{position:absolute;left:151px;width:100px;height:25px;object-fit:cover}
+.logo{position:absolute;left:50%;transform:translateX(-50%);width:136px;height:34px;object-fit:contain}
 .back{position:absolute;left:24px;top:40px;height:40px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:500;color:var(--brown-800);z-index:2}
 .back img{width:24px;height:24px}
 .card{position:absolute;left:24px;width:354px;background:rgba(255,254,248,.9);border:1.5px solid rgba(255,255,255,.95);border-radius:26px;box-shadow:0 12px 32px rgba(128,83,28,.1)}
