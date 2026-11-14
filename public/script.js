@@ -1240,6 +1240,22 @@
     paperContainer.addEventListener('click', triggerPaperWind);
   }
 
+  /* ---------- 3D Golden Gift Box tap interaction for mobile ---------- */
+  const giftWrap = $('#giftBoxWrap');
+  const giftBox = $('#giftBoxImg');
+  if (giftWrap && giftBox) {
+    let giftTimer = null;
+    const triggerGiftShake = () => {
+      giftBox.classList.add('is-shaking');
+      clearTimeout(giftTimer);
+      giftTimer = setTimeout(() => {
+        giftBox.classList.remove('is-shaking');
+      }, 1800);
+    };
+    giftWrap.addEventListener('touchstart', triggerGiftShake, { passive: true });
+    giftWrap.addEventListener('click', triggerGiftShake);
+  }
+
   /* ---------- start ---------- */
   async function initInvitation() {
     const activeCode = getActiveInviteCode();
