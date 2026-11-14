@@ -389,10 +389,18 @@
     updateSocialVisibility();
   }
 
+  if (socialDropdownPanel) {
+    socialDropdownPanel.addEventListener('click', e => {
+      e.stopPropagation();
+    });
+  }
+
   if (socialDropdownGrid) {
     socialDropdownGrid.addEventListener('click', e => {
       const btn = e.target.closest('.social-drop-item');
       if (btn && btn.dataset.platformId) {
+        e.preventDefault();
+        e.stopPropagation();
         addSocialAccount(btn.dataset.platformId);
       }
     });
@@ -401,6 +409,7 @@
   if (addSocialCircle) {
     addSocialCircle.addEventListener('click', e => {
       e.preventDefault();
+      e.stopPropagation();
       toggleSocialDropdown();
     });
   }
