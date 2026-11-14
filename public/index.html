@@ -309,7 +309,7 @@
     </section>
 
     <!-- ============ 5 · GUEST PASS ============ -->
-    <section class="screen" id="pass" hidden data-decor data-dy="0px" data-flower="-202px" style="height:1259px"
+    <section class="screen" id="pass" hidden data-decor data-dy="0px" data-flower="-202px" style="height:1330px"
       aria-label="Special guest pass">
       <button type="button" class="back" data-go="invite" id="passBackBtn"><img src="assets/icon-back.svg" alt="">Invitation</button>
       <div class="badge" id="passBadge">✓&nbsp; REGISTRATION COMPLETE</div>
@@ -339,10 +339,22 @@
         <div class="shine"></div>
       </article>
 
-      <h3 class="t c serif" style="top:1044px;width:354px;font-size:23px;line-height:1.05">A little reminder</h3>
-      <p class="t c" style="top:1082px;width:338px;font-size:12px;line-height:1.5;color:var(--muted)">Keep your pass
+      <!-- Download Guest Pass Button -->
+      <div class="pass-actions">
+        <button type="button" class="btn primary download-pass-btn" id="downloadPassBtn" data-action="downloadPass">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span id="downloadBtnText">Download Guest Pass</span>
+        </button>
+      </div>
+
+      <h3 class="t c serif" style="top:1100px;width:354px;font-size:23px;line-height:1.05">A little reminder</h3>
+      <p class="t c" style="top:1138px;width:338px;font-size:12px;line-height:1.5;color:var(--muted)">Keep your pass
         handy for event check-in.<br>We can’t wait to celebrate with you!</p>
-      <img class="logo" src="assets/logo.png" alt="Goldilocks" style="top:1181px">
+      <img class="logo" src="assets/logo.png" alt="Goldilocks" style="top:1235px">
     </section>
 
     <!-- ============ 6 · DECLINED ============ -->

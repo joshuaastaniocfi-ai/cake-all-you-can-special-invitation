@@ -644,6 +644,310 @@
     });
   }
 
+  /* ---------- Download Guest Pass as High-Resolution Ticket Image ---------- */
+  async function downloadGuestPass() {
+    const btn = $('#downloadPassBtn');
+    const btnText = $('#downloadBtnText');
+    if (btn) btn.disabled = true;
+    if (btnText) btnText.textContent = 'Generating Pass...';
+
+    try {
+      if (document.fonts) {
+        await document.fonts.ready;
+      }
+
+      const passName = ($('#passName')?.textContent || 'Juan Dela Cruz').trim();
+      const passNo = ($('#passNo')?.textContent || 'GUEST 001').trim();
+      const passRef = ($('#passRef')?.textContent || 'GL · 2026 · 001').trim();
+      const passBadge = ($('#passBadge')?.textContent || 'VERIFIED GUEST PASS').trim().replace(/^[✓\s]+/, '');
+
+      const canvas = document.createElement('canvas');
+      const w = 800;
+      const h = 1420;
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+
+      function roundRect(ctx, x, y, width, height, radius) {
+        ctx.beginPath();
+        ctx.moveTo(x + radius, y);
+        ctx.lineTo(x + width - radius, y);
+        ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+        ctx.lineTo(x + width, y + height - radius);
+        ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+        ctx.lineTo(x + radius, y + height);
+        ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+        ctx.lineTo(x, y + radius);
+        ctx.quadraticCurveTo(x, y, x + radius, y);
+        ctx.closePath();
+      }
+
+      // Outer canvas background (soft warm luxury cream)
+      const outerGrad = ctx.createLinearGradient(0, 0, w, h);
+      outerGrad.addColorStop(0, '#fefbf3');
+      outerGrad.addColorStop(0.5, '#fef6e2');
+      outerGrad.addColorStop(1, '#fef9ee');
+      ctx.fillStyle = outerGrad;
+      ctx.fillRect(0, 0, w, h);
+
+      // VIP Pass Main Card
+      const cardX = 40;
+      const cardY = 40;
+      const cardW = w - 80;
+      const cardH = h - 80;
+      const cardR = 36;
+
+      ctx.save();
+      ctx.shadowColor = 'rgba(88, 44, 14, 0.18)';
+      ctx.shadowBlur = 32;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 16;
+
+      const cardGrad = ctx.createLinearGradient(cardX, cardY, cardX + cardW, cardY + cardH);
+      cardGrad.addColorStop(0, '#ffffff');
+      cardGrad.addColorStop(0.4, '#fffbf0');
+      cardGrad.addColorStop(0.8, '#fffdf8');
+      cardGrad.addColorStop(1, '#ffffff');
+
+      roundRect(ctx, cardX, cardY, cardW, cardH, cardR);
+      ctx.fillStyle = cardGrad;
+      ctx.fill();
+      ctx.restore();
+
+      ctx.save();
+      roundRect(ctx, cardX, cardY, cardW, cardH, cardR);
+      ctx.strokeStyle = '#d8c9a3';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+      ctx.restore();
+
+      // Top Decorative Ribbon
+      const ribbonW = 260;
+      const ribbonH = 40;
+      const ribbonX = (w - ribbonW) / 2;
+      const ribbonY = cardY + 36;
+      roundRect(ctx, ribbonX, ribbonY, ribbonW, ribbonH, 20);
+      ctx.fillStyle = 'rgba(230, 234, 211, 0.95)';
+      ctx.fill();
+      ctx.fillStyle = '#40532c';
+      ctx.font = '600 13px Montserrat, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('✓  ' + passBadge.toUpperCase(), w / 2, ribbonY + ribbonH / 2);
+
+      // Goldilocks Brand Logo
+      await new Promise(resolve => {
+        const logoImg = new Image();
+        logoImg.onload = () => {
+          const logoW = 180;
+          const logoH = 45;
+          ctx.drawImage(logoImg, (w - logoW) / 2, cardY + 95, logoW, logoH);
+          resolve();
+        };
+        logoImg.onerror = () => {
+          // Fallback text if logo image is unavailable
+          ctx.fillStyle = '#582c00';
+          ctx.font = 'bold 28px "Cormorant Garamond", Georgia, serif';
+          ctx.fillText('Goldilocks', w / 2, cardY + 125);
+          resolve();
+        };
+        logoImg.src = 'assets/logo.png';
+      });
+
+      // Eyebrow
+      ctx.fillStyle = '#8c6225';
+      ctx.font = '600 13px Montserrat, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('GOLDILOCKS  /  EXCLUSIVE INVITATION', w / 2, cardY + 175);
+
+      // Title: Special Guest Pass
+      ctx.fillStyle = '#3c1e08';
+      ctx.font = 'bold 52px "Cormorant Garamond", Georgia, serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Special Guest Pass', w / 2, cardY + 245);
+
+      // Chip: ADMIT ONE
+      const chipW = 150;
+      const chipH = 36;
+      const chipX = (w - chipW) / 2;
+      const chipY = cardY + 280;
+      roundRect(ctx, chipX, chipY, chipW, chipH, 18);
+      ctx.fillStyle = 'rgba(120, 80, 33, 0.1)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(185, 138, 63, 0.35)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.fillStyle = '#582c00';
+      ctx.font = '600 13px Montserrat, sans-serif';
+      ctx.fillText('ADMIT ONE', w / 2, chipY + chipH / 2 + 1);
+
+      // Event Details
+      ctx.fillStyle = '#3c1e08';
+      ctx.font = 'bold 22px Montserrat, sans-serif';
+      ctx.fillText('CAKE ALL YOU CAN', w / 2, cardY + 370);
+
+      ctx.fillStyle = '#7a6348';
+      ctx.font = '500 18px Montserrat, sans-serif';
+      ctx.fillText('International Cake Day', w / 2, cardY + 402);
+
+      // Golden Divider
+      ctx.beginPath();
+      ctx.moveTo(cardX + 60, cardY + 440);
+      ctx.lineTo(cardX + cardW - 60, cardY + 440);
+      ctx.strokeStyle = 'rgba(185, 138, 63, 0.35)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Prepared For
+      ctx.fillStyle = '#997a53';
+      ctx.font = '600 14px Montserrat, sans-serif';
+      ctx.fillText('PREPARED FOR', w / 2, cardY + 480);
+
+      // Guest Name (auto-adjust size for long names)
+      let nameFontSize = 46;
+      if (passName.length > 20) nameFontSize = 36;
+      if (passName.length > 30) nameFontSize = 28;
+      ctx.fillStyle = '#3c1e08';
+      ctx.font = `bold ${nameFontSize}px "Cormorant Garamond", Georgia, serif`;
+      ctx.fillText(passName, w / 2, cardY + 540);
+
+      // Schedule & Venue
+      ctx.fillStyle = '#3c1e08';
+      ctx.font = 'bold 20px Montserrat, sans-serif';
+      ctx.fillText('November 30, 2026', w / 2, cardY + 615);
+
+      ctx.fillStyle = '#582c00';
+      ctx.font = '500 18px Montserrat, sans-serif';
+      ctx.fillText('3:00 PM – 8:00 PM', w / 2, cardY + 648);
+
+      ctx.fillStyle = '#4a2603';
+      ctx.font = '500 17px Montserrat, sans-serif';
+      ctx.fillText('Level 1, Expansion Activity Area', w / 2, cardY + 705);
+      ctx.fillText('Robinsons Marasbaras Tacloban', w / 2, cardY + 735);
+
+      // Perforated line & ticket notches
+      const notchY = cardY + 810;
+      const notchRadius = 24;
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.setLineDash([8, 8]);
+      ctx.moveTo(cardX + notchRadius + 5, notchY);
+      ctx.lineTo(cardX + cardW - notchRadius - 5, notchY);
+      ctx.strokeStyle = 'rgba(185, 138, 63, 0.45)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.restore();
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cardX, notchY, notchRadius, -Math.PI / 2, Math.PI / 2);
+      ctx.fillStyle = '#fef6e2';
+      ctx.fill();
+      ctx.strokeStyle = '#d8c9a3';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(cardX + cardW, notchY, notchRadius, Math.PI / 2, -Math.PI / 2);
+      ctx.fillStyle = '#fef6e2';
+      ctx.fill();
+      ctx.strokeStyle = '#d8c9a3';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+      ctx.restore();
+
+      // Bottom Stub
+      const stubY = notchY + 30;
+      const stubH = (cardY + cardH) - stubY - 20;
+
+      roundRect(ctx, cardX + 24, stubY, cardW - 48, stubH, 20);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(216, 201, 163, 0.5)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // Guest Number (Left)
+      ctx.fillStyle = '#3c1e08';
+      ctx.font = 'bold 24px Montserrat, sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText(passNo, cardX + 50, stubY + 55);
+
+      // Ref Code (Right)
+      ctx.fillStyle = '#7a6348';
+      ctx.font = '600 17px Montserrat, sans-serif';
+      ctx.textAlign = 'right';
+      ctx.fillText(passRef, cardX + cardW - 50, stubY + 55);
+
+      // Divider inside stub
+      ctx.beginPath();
+      ctx.moveTo(cardX + 50, stubY + 80);
+      ctx.lineTo(cardX + cardW - 50, stubY + 80);
+      ctx.strokeStyle = 'rgba(185, 138, 63, 0.2)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // Check-in notice
+      ctx.fillStyle = '#8c7355';
+      ctx.font = '500 15px Montserrat, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Official Guest Pass · Present at Event Check-in', w / 2, stubY + 125);
+      ctx.fillText('Valid for one (1) admitted guest only', w / 2, stubY + 155);
+
+      ctx.fillStyle = '#582c00';
+      ctx.font = 'italic 16px "Cormorant Garamond", Georgia, serif';
+      ctx.fillText('Warmest regards, The Goldilocks Team', w / 2, stubY + 205);
+
+      function triggerDownload(url, filename) {
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+
+      const fileSafeName = passName.replace(/[^a-zA-Z0-9]/g, '_');
+      const fileName = `Goldilocks_GuestPass_${fileSafeName}.png`;
+
+      const onDownloadComplete = () => {
+        if (btnText) btnText.textContent = '✓ Pass Downloaded!';
+        if (btn) btn.classList.add('is-success');
+        setTimeout(() => {
+          if (btnText) btnText.textContent = 'Download Guest Pass';
+          if (btn) {
+            btn.classList.remove('is-success');
+            btn.disabled = false;
+          }
+        }, 2500);
+      };
+
+      if (canvas.toBlob) {
+        canvas.toBlob(blob => {
+          if (!blob) {
+            triggerDownload(canvas.toDataURL('image/png'), fileName);
+            onDownloadComplete();
+            return;
+          }
+          const blobUrl = URL.createObjectURL(blob);
+          triggerDownload(blobUrl, fileName);
+          setTimeout(() => URL.revokeObjectURL(blobUrl), 3000);
+          onDownloadComplete();
+        }, 'image/png');
+      } else {
+        triggerDownload(canvas.toDataURL('image/png'), fileName);
+        onDownloadComplete();
+      }
+
+    } catch (err) {
+      console.error('Download pass error:', err);
+      if (btnText) btnText.textContent = 'Download Guest Pass';
+      if (btn) btn.disabled = false;
+      showMsgBox('Unable to generate pass image. Please take a screenshot of your pass instead.', 'Notice');
+    }
+  }
+
   /* ---------- every button, through one delegated handler ---------- */
   const actions = {
     viewPass: () => {
@@ -730,6 +1034,9 @@
     },
     openSocialPicker: () => {
       openSocialPicker();
+    },
+    downloadPass: () => {
+      downloadGuestPass();
     }
   };
   document.addEventListener('click', e => {
