@@ -424,8 +424,8 @@
     <div class="auth-card">
       <img src="assets/logo.png" alt="Goldilocks">
       <h2 class="serif">Admin Access</h2>
-      <p>Enter the administrator PIN to manage invitation links & view registered guests.</p>
-      <input type="password" id="pinInput" placeholder="••••••••" autofocus>
+      <p>Enter the administrator PIN to manage invitation links &amp; view registered guests.<br><small style="display:inline-block;margin-top:6px;color:#a89478">(Default PIN: <strong style="color:var(--brown-700)">CAYC2026</strong>)</small></p>
+      <input type="password" id="pinInput" placeholder="CAYC2026" autofocus>
       <p class="err" id="pinError">Invalid Admin PIN</p>
       <button type="button" class="btn primary" id="pinSubmit" style="width:100%;height:44px">Unlock Dashboard</button>
     </div>
@@ -539,6 +539,15 @@
 
   <script>
     (() => {
+      // Automatic API base detection: if running on local file system or local static server without backend, connect to live deployment API
+      const LIVE_URL = 'https://cake-all-you-can-special-invitation.vercel.app';
+      const isLocalStatic = window.location.protocol === 'file:' || 
+                            window.location.origin === 'null' ||
+                            !window.location.origin ||
+                            (window.location.hostname === 'localhost' && window.location.port !== '3000') ||
+                            (window.location.hostname === '127.0.0.1' && window.location.port !== '3000');
+      const API_BASE = isLocalStatic ? LIVE_URL : '';
+
       let ADMIN_PIN = sessionStorage.getItem('cayc_admin_pin') || '';
       let allInvites = [];
       let currentFilter = 'all';
@@ -559,7 +568,7 @@
       // Check PIN
       async function tryAuth(pin) {
         try {
-          const res = await fetch('/api/admin/auth', {
+          const res = await fetch(`${API_BASE}/api/admin/auth`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ pin })
@@ -598,7 +607,7 @@
       async function loadData() {
         if (!ADMIN_PIN) return;
         try {
-          const res = await fetch('/api/admin/overview', {
+          const res = await fetch(`${API_BASE}/api/admin/overview`, {
             headers: { 'x-admin-key': ADMIN_PIN }
           });
           if (res.status === 401) {
@@ -615,6 +624,7 @@
         } catch (e) {
           console.error(e);
           showToast('Failed to fetch data');
+          tableBody.innerHTML = `<tr><td colspan="7" class="empty-state" style="color:var(--danger)">⚠️ Error loading data from server. Please verify your connection or refresh.</td></tr>`;
         }
       }
 
@@ -641,7 +651,7 @@
         btn.textContent = 'Generating...';
 
         try {
-          const res = await fetch('/api/admin/create-link', {
+          const res = await fetch(`${API_BASE}/api/admin/create-link`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -700,7 +710,9 @@
           return;
         }
 
-        const baseUrl = window.location.origin;
+        const baseUrl = (window.location.protocol === 'file:' || window.location.origin === 'null' || !window.location.origin || isLocalStatic)
+          ? LIVE_URL
+          : window.location.origin;
 
         tableBody.innerHTML = filtered.map(item => {
           const fullUrl = `${baseUrl}/?code=${item.code}`;
@@ -770,7 +782,7 @@
       window.resetLink = async code => {
         if (!confirm(`Reset invitation ${code} back to Available? The existing guest registration will be cleared.`)) return;
         try {
-          const res = await fetch('/api/admin/reset-link', {
+          const res = await fetch(`${API_BASE}/api/admin/reset-link`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'x-admin-key': ADMIN_PIN },
             body: JSON.stringify({ code })
@@ -789,7 +801,7 @@
       window.deleteLink = async code => {
         if (!confirm(`Delete invitation link ${code}? This cannot be undone.`)) return;
         try {
-          const res = await fetch('/api/admin/delete-link', {
+          const res = await fetch(`${API_BASE}/api/admin/delete-link`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'x-admin-key': ADMIN_PIN },
             body: JSON.stringify({ code })

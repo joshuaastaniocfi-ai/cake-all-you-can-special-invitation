@@ -105,7 +105,7 @@ function normalizeName(name) {
 // 1. RSVP Model
 const rsvpSchema = new mongoose.Schema({
   guestNo: { type: String, required: true },
-  inviteCode: { type: String, uppercase: true, trim: true, index: true },
+  inviteCode: { type: String, uppercase: true, trim: true },
   first: { type: String, required: true, trim: true },
   last: { type: String, required: true, trim: true },
   name: { type: String, required: true, trim: true },
