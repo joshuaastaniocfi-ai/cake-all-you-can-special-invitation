@@ -16,14 +16,15 @@
 <body data-bg="gold">
 
   <!-- Global Shared SVG Defs (ensures gradient paints never break or unmount) -->
-  <svg width="0" height="0" style="position:absolute;width:0;height:0;overflow:hidden;pointer-events:none" aria-hidden="true">
+  <svg width="0" height="0" style="position:absolute;width:0;height:0;overflow:hidden;pointer-events:none"
+    aria-hidden="true">
     <defs>
       <radialGradient id="globalIgGrad" cx="30%" cy="107%" r="150%">
-        <stop offset="0%" stop-color="#fdf497"/>
-        <stop offset="5%" stop-color="#fdf497"/>
-        <stop offset="45%" stop-color="#fd5949"/>
-        <stop offset="60%" stop-color="#d6249f"/>
-        <stop offset="90%" stop-color="#285AEB"/>
+        <stop offset="0%" stop-color="#fdf497" />
+        <stop offset="5%" stop-color="#fdf497" />
+        <stop offset="45%" stop-color="#fd5949" />
+        <stop offset="60%" stop-color="#d6249f" />
+        <stop offset="90%" stop-color="#285AEB" />
       </radialGradient>
     </defs>
   </svg>
@@ -118,7 +119,8 @@
         style="left:50%;top:242px;font-size:20px;line-height:1;letter-spacing:1px;color:#582c00;white-space:nowrap">YOU
         ARE INVITED TO</p>
       <p class="t serif"
-        style="left:50%;transform:translateX(-50%);top:460px;width:230px;font-size:20px;line-height:1.15;letter-spacing:-.3px;color:#582c00;text-align:center">In
+        style="left:50%;transform:translateX(-50%);top:460px;width:230px;font-size:20px;line-height:1.15;letter-spacing:-.3px;color:#582c00;text-align:center">
+        In
         Celebration of<br>International Cake Day</p>
       <img class="abs" src="assets/logo.png" alt="Goldilocks"
         style="left:90px;top:564px;width:101px;height:25px;object-fit:cover">
@@ -128,9 +130,10 @@
       <!-- intro copy -->
       <img class="abs" src="assets/cake-matcha-alone.png" alt="Matcha cake"
         style="left:162px;top:1066px;width:78px;height:68px;object-fit:contain">
-      <div class="t body-text" style="left:44px;top:1158px;width:314px;text-align:center;font-family:var(--sans);font-size:11px;color:#582c00">
-        <p style="margin-bottom:24px;line-height:1.55">In celebration of International Cake Day, Goldilocks<br>cordially invites you to an exclusive, grand event:<br><strong style="font-weight:600;color:#582c00">“Cake All You Can!”</strong></p>
-        <p style="line-height:1.55">Join us for an unforgettable evening featuring a grand<br>cake buffet spread of unlimited Goldilocks signature<br>cakes, pastries, and special gifts.</p>
+      <div class="t body-text"
+        style="left:50%;transform:translateX(-50%);top:1158px;width:360px;text-align:center;font-family:var(--sans);font-size:11px;color:#582c00">
+        <p style="margin-bottom:22px;line-height:1.6">In celebration of International Cake Day,<br>Goldilocks cordially invites you to an exclusive grand event:<br><strong style="font-weight:600;color:#582c00">"Cake All You Can!"</strong></p>
+        <p style="line-height:1.6">Join us for an unforgettable evening featuring a grand<br>cake buffet spread of unlimited Goldilocks signature<br>cakes, pastries, and special gifts.</p>
       </div>
 
       <!-- lower decorative flowers / cakes -->
@@ -215,9 +218,11 @@
         <img class="gift-3d-box" id="giftBoxImg" src="assets/gift.png" alt="Special Goldilocks Gift Box">
       </div>
       <p class="t serif sub" style="left:111px;top:1845px;width:180px;text-align:center">SPECIAL GUEST INCLUDED</p>
-      <p class="t body-text" style="left:44px;top:1910px;width:314px;text-align:center;font-family:var(--sans);font-size:11px;line-height:1.55;color:#582c00">Unlimited self-serve access to our grand cake buffet
-        spread featuring signature Goldilocks Premiums, Signature, Classic Cakes, and Pasalubong.</p>
-      <p class="t body-text" style="left:145px;top:1971px;width:112px;font-family:var(--sans);font-size:11px;color:#582c00;white-space:nowrap">Special Tokens</p>
+      <div class="t body-text"
+        style="left:50%;transform:translateX(-50%);top:1895px;width:360px;text-align:center;font-family:var(--sans);font-size:11px;line-height:1.6;color:#582c00">
+        <p style="margin-bottom:16px">Unlimited self-serve access to our grand cake buffet<br>spread featuring signature show-stopping Goldilocks<br>Premiums, celebrated Signature, Classic Cakes, and<br>favorite Pasalubong.</p>
+        <p>Special Tokens</p>
+      </div>
 
       <!-- dress code -->
       <p class="t serif"
@@ -245,7 +250,8 @@
     <!-- ============ 3 · RSVP DECISION ============ -->
     <section class="screen" id="confirm" hidden data-decor data-dy="260px" data-flower="-577px" style="height:1259px"
       aria-label="RSVP">
-      <button type="button" class="back" data-go="invite" id="confirmBackBtn"><img src="assets/icon-back.svg" alt="">Your
+      <button type="button" class="back" data-go="invite" id="confirmBackBtn"><img src="assets/icon-back.svg"
+          alt="">Your
         invitation</button>
       <img class="logo" src="assets/logo.png" alt="Goldilocks" style="top:110px">
       <h1 class="headline serif" style="top:165px">A sweet invitation,<br>just for you.</h1>
@@ -308,11 +314,12 @@
         <div class="field social-field-wrap">
           <div class="social-header">
             <label>Social Media Accounts <span class="opt-text">(Optional)</span></label>
-            <button type="button" class="add-circle-btn" id="addSocialCircle" aria-label="Add social media account" title="Add social media account">
+            <button type="button" class="add-circle-btn" id="addSocialCircle" aria-label="Add social media account"
+              title="Add social media account">
               <img src="assets/icon-plus.svg" alt="" width="23" height="23">
             </button>
           </div>
-          
+
           <!-- Sequential Logos Dropdown Tray -->
           <div class="social-dropdown-panel" id="socialDropdownPanel" style="display:none">
             <div class="social-dropdown-grid" id="socialDropdownGrid"></div>
@@ -323,14 +330,15 @@
         </div>
         <div class="field"><label for="address">Address</label><textarea id="address" name="address"
             placeholder="e.g. 1234 Street, Barangay San Jose, Tacloban City"></textarea></div>
-        <label class="consent" id="consentWrap"><input type="checkbox" id="consent"><span
-            class="box">✓</span><span>I agree to the use of my details for event registration and guest communications.
+        <label class="consent" id="consentWrap"><input type="checkbox" id="consent"><span class="box">✓</span><span>I
+            agree to the use of my details for event registration and guest communications.
             *</span></label>
         <button class="btn primary submit" type="submit">Confirm &amp; get my guest pass</button>
         <p class="note">One invitation · One special guest pass</p>
       </form>
 
-      <p class="t c" id="formDateText" style="top:1032px;width:354px;font-size:11px;font-weight:500;line-height:1.5">November 30, 2026 ·
+      <p class="t c" id="formDateText" style="top:1032px;width:354px;font-size:11px;font-weight:500;line-height:1.5">
+        November 30, 2026 ·
         3:00 PM – 8:00 PM</p>
       <p class="t c" id="formLocText"
         style="top:1050px;width:257px;font-size:11px;line-height:1.35;letter-spacing:-.22px;color:var(--brown-900)">
@@ -340,9 +348,11 @@
     <!-- ============ 5 · GUEST PASS ============ -->
     <section class="screen" id="pass" hidden data-decor data-dy="0px" data-flower="-202px" style="height:1330px"
       aria-label="Special guest pass">
-      <button type="button" class="back" data-go="invite" id="passBackBtn"><img src="assets/icon-back.svg" alt="">Invitation</button>
+      <button type="button" class="back" data-go="invite" id="passBackBtn"><img src="assets/icon-back.svg"
+          alt="">Invitation</button>
       <div class="badge" id="passBadge">✓&nbsp; REGISTRATION COMPLETE</div>
-      <h1 class="t c serif" id="passHeadline" style="top:201px;width:346px;font-size:43px;line-height:1.05">You’re on the<br>guest list!
+      <h1 class="t c serif" id="passHeadline" style="top:201px;width:346px;font-size:43px;line-height:1.05">You’re on
+        the<br>guest list!
       </h1>
       <p class="t c" style="top:309px;width:354px;font-size:13px;line-height:1.5;color:var(--muted)">Your sweetest
         celebration awaits.</p>
@@ -371,7 +381,8 @@
       <!-- Download Guest Pass Button -->
       <div class="pass-actions">
         <button type="button" class="btn primary download-pass-btn" id="downloadPassBtn" data-action="downloadPass">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
             <polyline points="7 10 12 15 17 10"></polyline>
             <line x1="12" y1="15" x2="12" y2="3"></line>
@@ -410,17 +421,18 @@
     </section>
 
     <!-- ============ 7 · INVITATION LINK ALREADY USED ============ -->
-    <section class="screen" id="alreadyUsed" hidden data-decor data-dy="260px" data-flower="-577px" style="height:1259px"
-      aria-label="Invitation pass verification">
+    <section class="screen" id="alreadyUsed" hidden data-decor data-dy="260px" data-flower="-577px"
+      style="height:1259px" aria-label="Invitation pass verification">
       <button type="button" class="back" data-go="invite"><img src="assets/icon-back.svg" alt="">Invitation</button>
       <img class="logo" src="assets/logo.png" alt="Goldilocks" style="top:52px">
       <h1 class="headline serif" style="top:107px;font-size:36px;line-height:1.1">Verify Your<br>Guest Pass</h1>
-      
+
       <div class="card" style="top:220px;height:550px">
         <p class="t eyebrow" style="left:24px;top:26px">VERIFICATION REQUIRED</p>
         <h2 class="t serif" style="left:24px;top:56px;font-size:26px;line-height:1.15">View Your VIP Pass</h2>
         <p class="t" style="left:24px;top:95px;font-size:12px;line-height:1.5;color:var(--muted)">
-          This invitation has already been registered. Please enter your registered Full Name and Contact Number to access your pass.
+          This invitation has already been registered. Please enter your registered Full Name and Contact Number to
+          access your pass.
         </p>
 
         <div class="divider" style="top:150px"></div>
@@ -434,19 +446,24 @@
             <label for="claimMobile">Contact Number *</label>
             <input id="claimMobile" name="claimMobile" type="tel" placeholder="e.g. 09171234567" required>
           </div>
-          <p id="claimError" style="display:none;color:#b22222;font-size:11px;font-weight:600;margin-bottom:12px;text-align:center;line-height:1.4"></p>
+          <p id="claimError"
+            style="display:none;color:#b22222;font-size:11px;font-weight:600;margin-bottom:12px;text-align:center;line-height:1.4">
+          </p>
           <button type="submit" class="btn primary abs" id="claimSubmitBtn"
-            style="position:relative;width:100%;height:50px;font-size:14px;line-height:50px">Verify &amp; View Pass</button>
+            style="position:relative;width:100%;height:50px;font-size:14px;line-height:50px">Verify &amp; View
+            Pass</button>
         </form>
       </div>
 
-      <p class="t c serif" style="top:800px;width:338px;font-size:13px;line-height:1.05">A celebration made sweeter with you.</p>
+      <p class="t c serif" style="top:800px;width:338px;font-size:13px;line-height:1.05">A celebration made sweeter with
+        you.</p>
     </section>
 
   </main>
 
   <!-- Floating RSVP CTA button -->
-  <button type="button" class="btn rsvp-fixed is-hidden" id="toRsvp" data-action="respond">Respond to invitation</button>
+  <button type="button" class="btn rsvp-fixed is-hidden" id="toRsvp" data-action="respond">Respond to
+    invitation</button>
 
   <!-- Floating scroll down indicator -->
   <button type="button" class="arrow is-hidden" id="scrollDown" data-action="scrollDown" aria-label="Scroll down">
@@ -456,10 +473,12 @@
 
 
   <!-- Message Box Modal for Invalid Link / Base URL without code -->
-  <div id="msgBoxModal" class="msg-box-overlay" style="display:none" role="dialog" aria-modal="true" aria-labelledby="msgBoxTitle">
+  <div id="msgBoxModal" class="msg-box-overlay" style="display:none" role="dialog" aria-modal="true"
+    aria-labelledby="msgBoxTitle">
     <div class="msg-box-card">
       <div class="msg-box-icon">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+          stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="10"></circle>
           <line x1="12" y1="8" x2="12" y2="12"></line>
           <line x1="12" y1="16" x2="12.01" y2="16"></line>
