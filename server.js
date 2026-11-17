@@ -329,13 +329,22 @@ apiRouter.post('/rsvp', async (req, res) => {
       const acceptedCount = await RSVP.countDocuments({ response: 'accepted' });
       const guestNoStr = String(acceptedCount + 1).padStart(3, '0');
 
+      // Standardize mobile number: convert +639XX to standard 09XX
+      let standardMobile = mobile.trim();
+      const phoneDigits = standardMobile.replace(/\D/g, '');
+      if (phoneDigits.startsWith('63') && phoneDigits.length === 12) {
+        standardMobile = '0' + phoneDigits.slice(2);
+      } else if (phoneDigits.startsWith('0') && phoneDigits.length === 11) {
+        standardMobile = phoneDigits;
+      }
+
       const guestData = {
         guestNo: guestNoStr,
         first: first.trim(),
         last: last.trim(),
         name: fullName,
         email: email.trim(),
-        mobile: mobile.trim(),
+        mobile: standardMobile,
         social: Array.isArray(social) ? social : [],
         address: address ? address.trim() : ''
       };
@@ -571,6 +580,52 @@ apiRouter.post('/admin/reset-link', requireAdmin, async (req, res) => {
     );
     await RSVP.deleteMany({ inviteCode: normalizedCode });
     res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// Update guest details for an invite
+apiRouter.post('/admin/update-guest', requireAdmin, async (req, res) => {
+  try {
+    const { code, name, mobile, email, address } = req.body;
+    if (!code) return res.status(400).json({ ok: false, error: 'Missing code' });
+    await connectDB();
+
+    const normalizedCode = code.toUpperCase();
+    const invite = await Invite.findOne({ code: normalizedCode });
+    if (!invite) return res.status(404).json({ ok: false, error: 'Invite not found' });
+
+    let trimmedMobile = mobile ? String(mobile).trim() : (invite.guest?.mobile || '');
+    const phoneDigits = trimmedMobile.replace(/\D/g, '');
+    if (phoneDigits.startsWith('63') && phoneDigits.length === 12) {
+      trimmedMobile = '0' + phoneDigits.slice(2);
+    } else if (phoneDigits.startsWith('0') && phoneDigits.length === 11) {
+      trimmedMobile = phoneDigits;
+    }
+
+    const updatedGuest = {
+      ...(invite.guest || {}),
+      name: name !== undefined ? name.trim() : (invite.guest?.name || ''),
+      mobile: trimmedMobile,
+      email: email !== undefined ? email.trim() : (invite.guest?.email || ''),
+      address: address !== undefined ? address.trim() : (invite.guest?.address || '')
+    };
+
+    await Invite.updateOne({ code: normalizedCode }, { $set: { guest: updatedGuest } });
+    await RSVP.updateMany(
+      { inviteCode: normalizedCode },
+      {
+        $set: {
+          name: updatedGuest.name,
+          mobile: updatedGuest.mobile,
+          email: updatedGuest.email,
+          address: updatedGuest.address
+        }
+      }
+    );
+
+    res.json({ ok: true, guest: updatedGuest });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
   }

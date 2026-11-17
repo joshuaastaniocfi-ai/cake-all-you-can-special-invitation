@@ -431,6 +431,40 @@
     </div>
   </div>
 
+  <!-- Edit Guest Modal -->
+  <div class="auth-overlay" id="editModal" style="display:none">
+    <div class="auth-card" style="max-width:440px;text-align:left">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <h2 class="serif" style="font-size:20px;margin:0;color:var(--brown-900)">Edit Guest Details</h2>
+        <button type="button" class="btn outline sm" id="editCloseBtn" style="padding:4px 8px;border-radius:50%">✕</button>
+      </div>
+      <p style="margin-bottom:16px;font-size:12px;color:#7a6348">Update registered information for <strong id="editModalCode" style="color:var(--brown-900)"></strong>.</p>
+      <form id="editGuestForm">
+        <input type="hidden" id="editCode">
+        <div style="margin-bottom:12px">
+          <label style="display:block;font-size:11px;font-weight:700;color:#5a432d;margin-bottom:4px">Full Name</label>
+          <input type="text" id="editName" style="text-align:left;letter-spacing:normal;padding:10px 12px;font-size:13px;width:100%;border:1.5px solid #d8c49e;border-radius:8px" required>
+        </div>
+        <div style="margin-bottom:12px">
+          <label style="display:block;font-size:11px;font-weight:700;color:#5a432d;margin-bottom:4px">Mobile Number</label>
+          <input type="tel" id="editMobile" placeholder="e.g. 0917 123 4567" style="text-align:left;letter-spacing:normal;padding:10px 12px;font-size:13px;width:100%;border:1.5px solid #d8c49e;border-radius:8px" required>
+        </div>
+        <div style="margin-bottom:12px">
+          <label style="display:block;font-size:11px;font-weight:700;color:#5a432d;margin-bottom:4px">Email Address</label>
+          <input type="email" id="editEmail" style="text-align:left;letter-spacing:normal;padding:10px 12px;font-size:13px;width:100%;border:1.5px solid #d8c49e;border-radius:8px" required>
+        </div>
+        <div style="margin-bottom:18px">
+          <label style="display:block;font-size:11px;font-weight:700;color:#5a432d;margin-bottom:4px">Address / City (Optional)</label>
+          <input type="text" id="editAddress" style="text-align:left;letter-spacing:normal;padding:10px 12px;font-size:13px;width:100%;border:1.5px solid #d8c49e;border-radius:8px">
+        </div>
+        <div style="display:flex;gap:10px">
+          <button type="button" class="btn outline" id="editCancelBtn" style="flex:1">Cancel</button>
+          <button type="submit" class="btn primary" id="editSaveBtn" style="flex:1">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Header -->
   <header>
     <div class="brand">
@@ -729,7 +763,7 @@
             guestHtml = `
               <div class="guest-info">
                 <div class="name">${escapeHtml(item.guest.name || 'Registered Guest')}</div>
-                <div class="sub">📱 ${escapeHtml(item.guest.mobile || '')} &bull; ✉️ ${escapeHtml(item.guest.email || '')}</div>
+                <div class="sub">📱 ${escapeHtml(formatPhone(item.guest.mobile))} &bull; ✉️ ${escapeHtml(item.guest.email || '')}</div>
                 ${socialHtml}
               </div>
             `;
@@ -751,6 +785,7 @@
               <td style="color:#7a6348">${registeredDate}</td>
               <td style="text-align:right">
                 <a href="${fullUrl}" target="_blank" class="btn outline sm" style="text-decoration:none">Test Link</a>
+                ${isUsed ? `<button class="btn outline sm" style="margin-left:4px" onclick="editGuest('${item.code}')">✏️ Edit</button>` : ''}
                 ${(isUsed || isDeclined) ? `<button class="btn outline sm" style="margin-left:4px" onclick="resetLink('${item.code}')">Reset</button>` : ''}
                 <button class="btn outline sm" style="margin-left:4px;color:var(--danger)" onclick="deleteLink('${item.code}')">Delete</button>
               </td>
@@ -759,11 +794,83 @@
         }).join('');
       }
 
+      // Format Philippine phone numbers uniformly (09XX XXX XXXX)
+      function formatPhone(phone) {
+        if (!phone) return '—';
+        const clean = String(phone).trim();
+        const digits = clean.replace(/\D/g, '');
+        let core = '';
+        if (digits.startsWith('63') && digits.length === 12) {
+          core = digits.slice(2);
+        } else if (digits.startsWith('0') && digits.length === 11) {
+          core = digits.slice(1);
+        } else if (digits.length === 10 && digits.startsWith('9')) {
+          core = digits;
+        }
+
+        if (core.length === 10) {
+          return `0${core.slice(0, 3)} ${core.slice(3, 6)} ${core.slice(6)}`;
+        }
+        return clean;
+      }
+
       function escapeHtml(str) {
         return String(str || '').replace(/[&<>'"]/g, tag => ({
           '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
         }[tag] || tag));
       }
+
+      // Edit Guest
+      window.editGuest = code => {
+        const item = allInvites.find(i => i.code === code);
+        if (!item || !item.guest) return;
+        document.getElementById('editCode').value = item.code;
+        document.getElementById('editModalCode').textContent = `${item.code} (${item.guest.name || 'Guest'})`;
+        document.getElementById('editName').value = item.guest.name || '';
+        document.getElementById('editMobile').value = item.guest.mobile || '';
+        document.getElementById('editEmail').value = item.guest.email || '';
+        document.getElementById('editAddress').value = item.guest.address || '';
+        document.getElementById('editModal').style.display = 'flex';
+      };
+
+      const closeEditModal = () => {
+        document.getElementById('editModal').style.display = 'none';
+      };
+      document.getElementById('editCloseBtn').addEventListener('click', closeEditModal);
+      document.getElementById('editCancelBtn').addEventListener('click', closeEditModal);
+
+      document.getElementById('editGuestForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const code = document.getElementById('editCode').value;
+        const name = document.getElementById('editName').value.trim();
+        const mobile = document.getElementById('editMobile').value.trim();
+        const email = document.getElementById('editEmail').value.trim();
+        const address = document.getElementById('editAddress').value.trim();
+        const saveBtn = document.getElementById('editSaveBtn');
+
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Saving...';
+        try {
+          const res = await fetch(`${API_BASE}/api/admin/update-guest`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-admin-key': ADMIN_PIN },
+            body: JSON.stringify({ code, name, mobile, email, address })
+          });
+          const d = await res.json();
+          if (d.ok) {
+            showToast('Guest details updated successfully!');
+            closeEditModal();
+            loadData();
+          } else {
+            alert(d.error || 'Failed to update guest details');
+          }
+        } catch (err) {
+          alert('Network error updating guest details');
+        } finally {
+          saveBtn.disabled = false;
+          saveBtn.textContent = 'Save Changes';
+        }
+      });
 
       // Copy Link
       window.copyLink = (url, btn) => {
@@ -828,7 +935,7 @@
             i.recipientName || '',
             i.guest?.guestNo || '',
             i.guest?.name || '',
-            i.guest?.mobile || '',
+            i.guest?.mobile ? formatPhone(i.guest.mobile) : '',
             i.guest?.email || '',
             (i.guest?.social || []).join('; '),
             i.usedAt ? new Date(i.usedAt).toISOString() : ''
