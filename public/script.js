@@ -108,8 +108,8 @@
 
     if (rsvpFixedBtn) {
       if (!isLinkValid || !inviteCode) {
-        rsvpFixedBtn.textContent = 'Invitation Code Required';
-        rsvpFixedBtn.dataset.action = 'respond';
+        rsvpFixedBtn.textContent = 'Purchase Now';
+        rsvpFixedBtn.dataset.action = 'redirectToApp';
       } else if (isInviteUsed) {
         rsvpFixedBtn.textContent = 'View Guest Pass';
         rsvpFixedBtn.dataset.action = 'viewPass';
@@ -1191,9 +1191,12 @@
     open: () => {
       openEnvelope();
     },
+    redirectToApp: () => {
+      window.location.href = 'https://goldilocks-cake-all-you-can.onrender.com/';
+    },
     respond: () => {
       if (!isLinkValid || !inviteCode) {
-        showMsgBox(invalidLinkReason, 'Invitation Required');
+        window.location.href = 'https://goldilocks-cake-all-you-can.onrender.com/';
         return;
       }
       if (isInviteUsed) {
@@ -1301,6 +1304,15 @@
       openEnvelope();
     });
   }
+  if (rsvpFixedBtn) {
+    rsvpFixedBtn.addEventListener('click', (e) => {
+      if (!isLinkValid || !inviteCode) {
+        e.preventDefault();
+        e.stopPropagation();
+        window.location.href = 'https://goldilocks-cake-all-you-can.onrender.com/';
+      }
+    });
+  }
 
   /* ---------- Pinned paper note wind breeze flutter on touch ---------- */
   const paperContainer = $('#pinnedPaperContainer');
@@ -1340,11 +1352,14 @@
     if (!activeCode) {
       isLinkValid = false;
       invalidLinkReason = 'This link is not valid for registration. An official personal invitation link with a unique invitation code is required to RSVP.';
-      showMsgBox(invalidLinkReason, 'Invitation Required');
       show('invite');
       document.body.dataset.bg = 'gold';
-      setArrowVisible(false);
-      setRsvpVisible(false);
+      if (rsvpFixedBtn) {
+        rsvpFixedBtn.textContent = 'Purchase Now';
+        rsvpFixedBtn.dataset.action = 'redirectToApp';
+        rsvpFixedBtn.classList.remove('is-hidden');
+      }
+      setArrowVisible(true);
       return;
     }
 

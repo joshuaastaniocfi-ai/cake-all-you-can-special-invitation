@@ -108,7 +108,7 @@
 
     if (rsvpFixedBtn) {
       if (!isLinkValid || !inviteCode) {
-        rsvpFixedBtn.textContent = 'Invitation Code Required';
+        rsvpFixedBtn.textContent = 'Purchase Now';
         rsvpFixedBtn.dataset.action = 'redirectToApp';
       } else if (isInviteUsed) {
         rsvpFixedBtn.textContent = 'View Guest Pass';
@@ -1355,7 +1355,7 @@
       show('invite');
       document.body.dataset.bg = 'gold';
       if (rsvpFixedBtn) {
-        rsvpFixedBtn.textContent = 'Invitation Code Required';
+        rsvpFixedBtn.textContent = 'Purchase Now';
         rsvpFixedBtn.dataset.action = 'redirectToApp';
         rsvpFixedBtn.classList.remove('is-hidden');
       }
